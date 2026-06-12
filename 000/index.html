@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Before the frameworks and the prompt engineering — what never goes into an AI tool, and how to think about everything else. Devfuzion AI Field Notes, Issue 000.">
+<!-- SOCIAL CARDS — if you skip the custom domain, find-replace
+     https://fieldnotes.devfuzion.com with your real Pages URL -->
+<meta property="og:type" content="article">
+<meta property="og:title" content="What Goes In Never Comes Back.">
+<meta property="og:description" content="Read this first. What never goes into an AI tool, and how to think about everything else. Issue 000 of Devfuzion AI Field Notes.">
+<meta property="og:url" content="https://fieldnotes.devfuzion.com/000/">
+<meta property="og:image" content="https://fieldnotes.devfuzion.com/assets/og-000.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:site_name" content="Devfuzion AI Field Notes">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="What Goes In Never Comes Back.">
+<meta name="twitter:description" content="Read this first. What never goes into an AI tool — and the one question to ask about everything else.">
+<meta name="twitter:image" content="https://fieldnotes.devfuzion.com/assets/og-000.png">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='5' fill='%230D0D0F'/%3E%3Crect x='6' y='9' width='20' height='5' fill='%2361D8FF'/%3E%3Crect x='6' y='18' width='13' height='5' fill='%232A2A31'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,600;12..96,800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --ink: #0D0D0F; --ink2: #161619;
+    --bone: #EDEAE3; --bone-dim: #9b978e; --bone-dark: #6b675f;
+    --sig: #61D8FF; --warm: #FF5A48; --ghost: #2A2A31;
+    --mono: 'JetBrains Mono', monospace;
+    --disp: 'Anton', sans-serif;
+    --grot: 'Bricolage Grotesque', sans-serif;
+  }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--ink); color: var(--bone);
+    font-family: var(--grot); font-weight: 300;
+    font-size: 17px; line-height: 1.75; overflow-x: hidden;
+  }
+  ::selection { background: var(--sig); color: var(--ink); }
+  :focus-visible { outline: 2px solid var(--sig); outline-offset: 2px; }
+  body::after {
+    content: ''; position: fixed; inset: -50%;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+    opacity: 0.045; pointer-events: none; z-index: 999;
+    animation: grain 0.7s steps(3) infinite;
+  }
+  @keyframes grain { 0%{transform:translate(0,0)} 33%{transform:translate(-2%,1%)} 66%{transform:translate(1%,-2%)} }
+
+  #prog { position: fixed; top: 0; left: 0; height: 3px; background: var(--sig); width: 0; z-index: 300; }
+
+  .ticker {
+    background: var(--sig); color: var(--ink);
+    font-family: var(--mono); font-size: 12px; font-weight: 700;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    padding: 8px 0; overflow: hidden; white-space: nowrap;
+  }
+  .ticker-track { display: inline-block; animation: mq 26s linear infinite; }
+  .ticker span { margin: 0 18px; }
+  .ticker s { text-decoration-thickness: 2px; }
+  @keyframes mq { to { transform: translateX(-50%); } }
+
+  .bar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+    background: var(--ink); border-bottom: 1px solid var(--ghost);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 5vw;
+    font-family: var(--mono); font-size: 11px; font-weight: 500;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    transform: translateY(-101%); transition: transform 0.3s ease;
+  }
+  .bar.show { transform: none; }
+  .bar a { color: var(--bone-dim); text-decoration: none; transition: color 0.2s; }
+  .bar a:hover { color: var(--sig); }
+  .bar .brand { color: var(--bone); }
+  .bar .brand b { color: var(--sig); font-weight: 700; }
+
+  .hero { position: relative; padding: 60px 5vw 70px; border-bottom: 1px solid var(--ghost); overflow: hidden; }
+  .rail {
+    position: absolute; top: 64px; right: 4vw; writing-mode: vertical-rl;
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.3em;
+    color: var(--bone-dim); text-transform: uppercase;
+  }
+  .rail b { color: var(--sig); font-weight: 500; }
+  h1 {
+    font-family: var(--disp); font-weight: 400; text-transform: uppercase;
+    font-size: clamp(50px, 12.5vw, 142px); line-height: 0.92; margin-left: -0.04em;
+  }
+  h1 .row { display: block; position: relative; opacity: 0; transform: translateY(0.25em); animation: rise 0.7s cubic-bezier(0.2,0.7,0.3,1) forwards; }
+  h1 .row:nth-child(1) { animation-delay: 0.08s; }
+  h1 .row:nth-child(2) { animation-delay: 0.2s; }
+  h1 .row:nth-child(3) { animation-delay: 0.32s; }
+  @keyframes rise { to { opacity: 1; transform: none; } }
+  h1 .hollow { color: transparent; -webkit-text-stroke: 2px var(--bone); }
+  h1 .down { color: var(--sig); display: inline-block; transform: translateY(0.07em) rotate(-1.2deg); }
+  h1 .row:last-child::before {
+    content: 'BACK.'; position: absolute; left: -0.02em; top: 0.12em;
+    color: transparent; -webkit-text-stroke: 1px var(--warm);
+    opacity: 0.32; z-index: -1;
+  }
+  h1:hover .down { animation: jolt 0.3s steps(2) infinite; }
+  @keyframes jolt {
+    0% { transform: translate(0.02em, 0.05em) rotate(-1.2deg); }
+    50% { transform: translate(-0.02em, 0.08em) rotate(-0.8deg); }
+  }
+  .why {
+    display: inline-block; background: var(--sig); color: var(--ink);
+    font-family: var(--disp); text-transform: uppercase;
+    font-size: clamp(22px, 4.4vw, 44px); line-height: 1;
+    padding: 8px 16px 10px; margin-top: 22px; transform: rotate(-0.8deg);
+    opacity: 0; animation: rise 0.6s ease 0.5s forwards;
+  }
+  .deckline { display: flex; flex-wrap: wrap; gap: 24px; margin-top: 42px; align-items: flex-start; opacity: 0; animation: rise 0.6s ease 0.64s forwards; }
+  .deckrule { flex-shrink: 0; width: 88px; height: 5px; background: var(--sig); margin-top: 12px; }
+  .deck { max-width: 460px; font-size: 17px; color: var(--bone-dim); }
+  .deck b { color: var(--bone); font-weight: 600; }
+  .meta {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em;
+    color: var(--bone-dim); text-transform: uppercase; margin-top: 20px;
+    opacity: 0; animation: rise 0.6s ease 0.76s forwards;
+  }
+  .meta b { color: var(--bone); font-weight: 500; }
+  .meta #rt { color: var(--sig); font-variant-numeric: tabular-nums; }
+
+  .wrap { max-width: 880px; margin: 0 auto; padding: 0 5vw; }
+  p { margin-bottom: 22px; color: #CFCBC3; max-width: 640px; }
+  p strong { color: var(--bone); font-weight: 600; }
+  p em { color: var(--sig); font-style: normal; }
+
+  .sec { position: relative; padding: 84px 0 8px; }
+  .secnum {
+    font-family: var(--disp); font-size: clamp(110px, 20vw, 240px);
+    line-height: 0.8; color: transparent;
+    -webkit-text-stroke: 1.5px var(--ghost);
+    position: absolute; top: 36px; right: -1vw;
+    user-select: none; z-index: 0; pointer-events: none;
+  }
+  .plate {
+    display: inline-block; background: var(--sig); color: var(--ink);
+    font-family: var(--disp); text-transform: uppercase; font-weight: 400;
+    font-size: clamp(27px, 5.4vw, 52px); line-height: 1.06;
+    padding: 10px 20px 12px; max-width: 640px;
+    transform: rotate(-0.6deg); position: relative; z-index: 1;
+  }
+  .fn { font-family: var(--mono); font-size: 12px; color: var(--bone-dim); letter-spacing: 0.08em; margin: 18px 0 30px; max-width: none; }
+  h3 {
+    font-family: var(--grot); font-weight: 800;
+    font-size: 19px; letter-spacing: 0.04em; text-transform: uppercase;
+    color: var(--bone); margin: 46px 0 14px;
+  }
+  h3::before { content: '// '; color: var(--sig); }
+  .kit-tag {
+    font-family: var(--mono); font-size: 11px; font-weight: 700;
+    letter-spacing: 0.25em; color: var(--sig); text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+
+  .pq { margin: 48px 0; max-width: 680px; border-left: 5px solid var(--sig); padding-left: 26px; }
+  .pq p { font-weight: 700; font-size: clamp(20px, 3vw, 26px); line-height: 1.45; color: var(--bone); margin-bottom: 12px; max-width: none; }
+  .pq cite { font-family: var(--mono); font-size: 12px; color: var(--bone-dim); font-style: normal; letter-spacing: 0.07em; }
+
+  .callout { border: 1px solid var(--ghost); background: var(--ink2); padding: 22px 24px 20px; margin: 36px 0; max-width: 660px; position: relative; }
+  .callout-tag {
+    position: absolute; top: -10px; left: 16px;
+    background: var(--sig); color: var(--ink);
+    font-family: var(--mono); font-size: 10px; font-weight: 700;
+    letter-spacing: 0.2em; text-transform: uppercase; padding: 2px 10px;
+  }
+  .callout p { margin: 6px 0 0; font-size: 15px; max-width: none; }
+
+  /* ── EXHIBIT 0: the payload — tap to expose what left the building ── */
+  .gap {
+    padding: 56px 0; margin: 56px 0;
+    border-top: 1px solid var(--ghost); border-bottom: 1px solid var(--ghost);
+    position: relative;
+  }
+  .gap-tag {
+    position: absolute; top: -11px; left: 0; background: var(--ink); padding-right: 14px;
+    font-family: var(--mono); font-size: 11px; font-weight: 700;
+    letter-spacing: 0.25em; color: var(--warm); text-transform: uppercase;
+  }
+  .tx { cursor: pointer; max-width: 880px; }
+  .tx-label {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.18em;
+    text-transform: uppercase; margin-bottom: 12px; color: var(--bone);
+  }
+  .ticket {
+    border: 1px solid var(--ghost); background: var(--ink2);
+    padding: 22px 24px; max-width: 720px;
+    font-family: var(--mono); font-size: 14px; line-height: 2;
+    color: var(--bone-dim);
+  }
+  .leak { padding: 0 0.15em; transition: background 0.3s, color 0.3s; }
+  .tx.open .leak, .tx:hover .leak { background: rgba(255,90,72,0.16); color: var(--bone); box-shadow: inset 0 -2px 0 var(--warm); }
+  .gap-count {
+    font-family: var(--mono); font-size: 12px; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--warm); margin-top: 18px;
+    opacity: 0; transition: opacity 0.4s;
+  }
+  .tx.open ~ .gap-count, .gap:hover .gap-count { opacity: 1; }
+  .gap-cap { font-family: var(--mono); font-size: 12px; color: var(--bone-dim); margin: 14px 0 0; max-width: 560px; }
+  .gap-cap b { color: var(--sig); }
+
+  /* ── NEVER / INSTEAD grid ── */
+  .nv-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; margin: 32px 0; max-width: 760px; border: 1px solid var(--ghost); }
+  .nv-hd {
+    padding: 11px 14px;
+    font-family: var(--mono); font-size: 11px; font-weight: 700;
+    letter-spacing: 0.18em; text-transform: uppercase;
+  }
+  .nv-hd.never { background: var(--warm); color: var(--ink); }
+  .nv-hd.instead { background: var(--sig); color: var(--ink); }
+  .nv-row { padding: 14px; font-size: 14px; line-height: 1.6; border-top: 1px solid var(--ghost); }
+  .nv-row.l { color: #E8B0A8; border-right: 1px solid var(--ghost); }
+  .nv-row.r { color: #BFE9F8; }
+  .nv-row b { display: block; font-weight: 700; text-transform: uppercase; font-size: 12.5px; letter-spacing: 0.05em; margin-bottom: 3px; color: var(--bone); }
+
+  /* ── CHECKLIST ── */
+  .cl { list-style: none; margin: 30px 0; max-width: 680px; }
+  .cl li {
+    display: flex; align-items: flex-start; gap: 14px;
+    padding: 15px 16px; margin-bottom: 8px;
+    border: 1px solid var(--ghost); background: var(--ink2);
+    cursor: pointer; font-size: 15px;
+    color: var(--bone-dim); transition: border-color 0.2s, color 0.2s;
+    user-select: none;
+  }
+  .cl li:hover { border-color: var(--bone-dark); }
+  .cl li.chk { border-color: var(--sig); color: var(--bone); }
+  .cb {
+    width: 20px; height: 20px; flex-shrink: 0;
+    border: 2px solid var(--ghost);
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.2s, border-color 0.2s; margin-top: 3px;
+  }
+  .cl li.chk .cb { background: var(--sig); border-color: var(--sig); }
+  .ct { font-size: 12px; opacity: 0; color: var(--ink); font-weight: 700; }
+  .cl li.chk .ct { opacity: 1; }
+  .cl li strong { color: inherit; font-weight: 700; text-transform: uppercase; font-size: 13.5px; letter-spacing: 0.04em; }
+  .cl-prog {
+    font-family: var(--mono); font-size: 12px; font-weight: 700;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--bone-dark); margin-bottom: 20px;
+  }
+  .cl-prog #cc { color: var(--sig); }
+  .cl-prog.full, .cl-prog.full #cc { color: var(--sig); }
+
+  #fab {
+    position: fixed; right: 20px; bottom: 20px; z-index: 250;
+    width: 46px; height: 46px;
+    background: var(--ink2); color: var(--sig);
+    border: 1px solid var(--ghost);
+    font-size: 17px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; transform: translateY(14px); pointer-events: none;
+    transition: opacity 0.4s, transform 0.4s, background 0.2s;
+  }
+  #fab.show { opacity: 1; transform: none; pointer-events: auto; }
+  #fab:hover { background: var(--sig); color: var(--ink); }
+  #fab-toast {
+    position: fixed; right: 20px; bottom: 76px; z-index: 250;
+    font-family: var(--mono); font-size: 11px; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    background: var(--sig); color: var(--ink);
+    padding: 7px 13px;
+    opacity: 0; transform: translateY(6px); pointer-events: none;
+    transition: opacity 0.3s, transform 0.3s;
+  }
+  #fab-toast.show { opacity: 1; transform: none; }
+
+  .closer { margin: 80px 0 0; border-left: 5px solid var(--sig); padding-left: 26px; max-width: 720px; }
+  .closer p { font-weight: 700; font-size: clamp(21px, 3.4vw, 30px); line-height: 1.4; color: var(--bone); margin-bottom: 14px; max-width: none; }
+  .closer cite { font-family: var(--mono); font-size: 12px; color: var(--bone-dim); font-style: normal; letter-spacing: 0.07em; }
+
+  footer { margin-top: 90px; border-top: 1px solid var(--ghost); }
+  .next { padding: 52px 5vw; border-bottom: 1px solid var(--ghost); max-width: 880px; margin: 0 auto; }
+  .next-k { font-family: var(--mono); font-size: 11px; font-weight: 700; letter-spacing: 0.25em; color: var(--bone-dim); text-transform: uppercase; margin-bottom: 14px; }
+  .next-t { font-family: var(--disp); font-size: clamp(26px, 5vw, 44px); text-transform: uppercase; line-height: 1.05; margin-bottom: 12px; }
+  .next-t b { color: var(--sig); font-weight: 400; }
+  .next-d { color: var(--bone-dim); font-size: 15px; max-width: 460px; }
+  .next a { color: inherit; text-decoration: none; }
+  .foot {
+    padding: 24px 5vw; display: flex; flex-wrap: wrap;
+    justify-content: space-between; gap: 12px;
+    font-family: var(--mono); font-size: 11px; font-weight: 500;
+    letter-spacing: 0.14em; text-transform: uppercase; color: var(--bone-dim);
+  }
+  .foot a { color: var(--bone-dim); text-decoration: none; transition: color 0.2s; }
+  .foot a:hover { color: var(--sig); }
+  .foot b { color: var(--sig); font-weight: 500; }
+
+  .rv { opacity: 0; transform: translateY(22px); transition: opacity 0.55s ease, transform 0.55s cubic-bezier(0.2,0.6,0.3,1); }
+  .rv.in { opacity: 1; transform: none; }
+
+  @media (max-width: 640px) {
+    .rail { display: none; }
+    .nv-grid { grid-template-columns: 1fr; }
+    .nv-row.l { border-right: none; }
+    .nv-hd.instead { border-top: 1px solid var(--ghost); }
+    .secnum { right: -4vw; opacity: 0.7; }
+    .ticket { font-size: 12.5px; padding: 16px; }
+    #fab { right: 14px; bottom: 14px; }
+    #fab-toast { right: 14px; bottom: 70px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    body::after, .ticker-track { animation: none; }
+    h1 .row, .why, .deckline, .meta { animation: none; opacity: 1; }
+    h1 .row { transform: none; } .deckline, .meta { transform: none; }
+    h1:hover .down { animation: none; }
+    .rv { opacity: 1; transform: none; transition: none; }
+    .bar { transition: none; }
+  }
+</style>
+</head>
+<body>
+<div id="prog"></div>
+
+<div class="ticker" aria-hidden="true">
+  <div class="ticker-track">
+    <span><s>"the whole ticket thread"</s> — gone</span><span>·</span>
+    <span><s>"just one password"</s> — gone</span><span>·</span>
+    <span><s>"the firewall config"</s> — gone</span><span>·</span>
+    <span><s>"the client's audit findings"</s> — gone</span><span>·</span>
+    <span><s>"a quick screenshot"</s> — gone</span><span>·</span>
+    <span><s>"the whole ticket thread"</s> — gone</span><span>·</span>
+    <span><s>"just one password"</s> — gone</span><span>·</span>
+    <span><s>"the firewall config"</s> — gone</span><span>·</span>
+    <span><s>"the client's audit findings"</s> — gone</span><span>·</span>
+    <span><s>"a quick screenshot"</s> — gone</span><span>·</span>
+  </div>
+</div>
+
+<div class="bar" id="bar">
+  <span class="brand">Devfuzion <b>//</b> AI Field Notes</span>
+  <a href="../">Issue 000 · all issues</a>
+  <a href="../001/">Next: Issue 001 →</a>
+</div>
+
+<header class="hero">
+  <div class="rail">Devfuzion <b>//</b> AI Field Notes <b>//</b> Issue 000</div>
+  <h1>
+    <span class="row">What goes in</span>
+    <span class="row hollow">never comes</span>
+    <span class="row"><span class="down">back.</span></span>
+  </h1>
+  <div class="why">Read this first.</div>
+  <div class="deckline">
+    <div class="deckrule"></div>
+    <p class="deck">Before the frameworks. Before the prompt engineering. Before anything in Issue 001 — one question: <b>should this data be in an AI chat at all?</b></p>
+  </div>
+  <p class="meta">Field notes by <b>Aubrey Ballard</b> — Sr. Systems Analyst · <span id="rt">~7 min</span> · interactive</p>
+</header>
+
+<div class="wrap">
+
+  <section style="padding-top:64px;">
+    <p class="rv">A while back I walked past a screen and stopped. One of our techs had a full ticket thread copied — fourteen replies deep, the client's name in every signature, a temp password sitting in the third message — and a free AI chat window open in the next tab. He was about to ask it to "summarize this for the client."</p>
+
+    <p class="rv">Good instinct. Right tool for the job. And one keystroke away from handing a client's data to a company nobody in that ticket had ever heard of.</p>
+
+    <p class="rv">He hadn't done anything wrong yet. That's the entire point of this issue: <strong>the moment before the paste is the only moment that matters.</strong> After it, there's nothing to fix — because there's no version of "undo" that reaches into someone else's infrastructure and pulls your data back out.</p>
+
+    <p class="rv">This is Issue 000, and it's numbered that way on purpose. Everything else in this series — the spec writing, the verification, the environment building — assumes you've already answered the question above. So we answer it first.</p>
+  </section>
+
+  <!-- 01 -->
+  <section class="sec">
+    <div class="secnum" aria-hidden="true">01</div>
+    <h2 class="plate rv">Where it actually goes.</h2>
+    <p class="fn rv">// follow_the_data()</p>
+
+    <p class="rv">When you paste something into an AI tool you don't control, three things are true. None of them are comforting.</p>
+
+    <p class="rv"><strong>You can't verify what happens next.</strong> I'm not going to tell you what any specific tool does with your data today, because by the time you read this it may have changed. Retention policies, training policies, what's covered on a free account versus a paid one — these vary by vendor, by tier, by a settings toggle you may never have seen. That's not paranoia. That's the actual reason you can't rely on it: <em>the data handling of a tool you don't control is, by definition, unverifiable by you.</em></p>
+
+    <p class="rv"><strong>There is no recall.</strong> Every other mistake we make in this job has a remediation path. Wrong config? Roll it back. Deleted the wrong thing? Restore from backup. Pasted client data into a chat window? There is no ticket you can open for that. The data changed custody the moment you hit send, and the new custodian doesn't work for you.</p>
+
+    <p class="rv"><strong>It was never your data.</strong> This is the part that's specific to our job. An MSP tech sits inside dozens of client environments. Your chat history with an unmanaged AI tool isn't just <em>your</em> exposure — it's a cross-client data store accumulating one paste at a time. Our entire business is clients trusting us inside their walls. That trust doesn't have a clause for "but the summary was really good."</p>
+
+    <p class="rv">Some of those clients are healthcare — and healthcare is the clearest example because the obligations are written down and have a name: HIPAA. Patient information in a ticket doesn't stop being protected health information because it's on its way to a chatbot. But don't let the clearest example narrow the principle. Every client has data they'd expect us to treat exactly that carefully, whether the rules come from a regulator, a SOC 2 report, a contract, or just the handshake that won us the account.</p>
+
+    <div class="gap rv">
+      <div class="gap-tag">Exhibit 0 — The Payload</div>
+      <div class="tx" id="tx" tabindex="0" role="button" aria-label="Reveal what left the building">
+        <div class="tx-label">What the tech saw: a routine ticket.</div>
+        <div class="ticket">RE: RE: RE: Printer issues — <span class="leak">Maria at the front desk</span> called again, still can't print from the <span class="leak">EHR</span>. I reset her password to <span class="leak">Sunrise2024!</span> as a temp. Server is <span class="leak">10.1.40.12</span> if you need to RDP in. — <span class="leak">Lakeside Family Clinic</span> helpdesk thread</div>
+      </div>
+      <div class="gap-count">5 items left the building in one paste.</div>
+      <p class="gap-cap">A staff member's identity. A live credential. An internal address. A client name. A system that handles patient data. None of it was the question — all of it was in the paste. <b>Tap the ticket.</b></p>
+    </div>
+
+    <p class="rv">That ticket is fictional, but I've seen its cousins a dozen times. Nobody pastes credentials into an AI on purpose. They paste <em>context</em> — and the credentials ride along, because the whole thread was faster to grab than the relevant part.</p>
+  </section>
+
+  <!-- 02 -->
+  <section class="sec">
+    <div class="secnum" aria-hidden="true">02</div>
+    <h2 class="plate rv">The hard rules.</h2>
+    <p class="fn rv">// the_never_paste_list()</p>
+
+    <p class="rv">Everything above leads to a short list. I'm not asking you to memorize a policy — these are conclusions. If you followed the logic this far, you've already written this list yourself.</p>
+
+    <p class="rv">And none of these come with a productivity cost, because every one of them has a substitute that works just as well. The model doesn't need the real thing. It needs the <em>shape</em> of the thing.</p>
+
+    <div class="nv-grid rv">
+      <div class="nv-hd never">Never paste</div>
+      <div class="nv-hd instead">Say instead</div>
+
+      <div class="nv-row l"><b>Credentials &amp; secrets</b>Passwords, API keys, MFA seeds, recovery codes — even expired ones, even "just to ask about the format."</div>
+      <div class="nv-row r"><b>The generic version</b>"A service account password" or "an API key" tells the model everything it needs.</div>
+
+      <div class="nv-row l"><b>People</b>Names, emails, phone numbers, and anything resembling patient information — ever.</div>
+      <div class="nv-row r"><b>Roles, not names</b>"The office manager." "A staff member." "A patient." The model genuinely does not care who.</div>
+
+      <div class="nv-row l"><b>Client identity</b>Company names, domains, and combinations of details that identify a client even without the name.</div>
+      <div class="nv-row r"><b>The anonymous profile</b>"A 40-seat medical office." "A multi-site retail client." Specific enough to get a good answer.</div>
+
+      <div class="nv-row l"><b>Network internals</b>Real IPs, hostnames, topology, firewall rules, VPN configs.</div>
+      <div class="nv-row r"><b>Sanitized placeholders</b>"10.x.x.x," "the file server," "a rule between the LAN and DMZ zones." Structure without coordinates.</div>
+
+      <div class="nv-row l"><b>Security findings</b>Vulnerabilities, audit results, what's actually broken or exposed in a client's environment.</div>
+      <div class="nv-row r"><b>The class of issue</b>Ask about the category — "handling an exposed SMB share" — not your client's instance of it.</div>
+
+      <div class="nv-row l"><b>Anything covered</b>Data under HIPAA, SOC 2, or a contract. If you don't know whether it's covered —</div>
+      <div class="nv-row r"><b>It's covered</b>Treat every client like the obligations apply. The ones where they legally do won't be labeled for you.</div>
+    </div>
+
+    <div class="callout rv">
+      <div class="callout-tag">The Pattern</div>
+      <p>Notice what every row has in common: the safe version is almost never a worse prompt. Half the time it's a better one — because stripping the specifics forces you to describe the actual problem, which is exactly the discipline Issue 001 is about.</p>
+    </div>
+  </section>
+
+  <!-- 03 -->
+  <section class="sec">
+    <div class="secnum" aria-hidden="true">03</div>
+    <h2 class="plate rv">The grey areas.</h2>
+    <p class="fn rv">// run_the_breach_test()</p>
+
+    <p class="rv">The hard list covers the obvious. The grey areas are where judgment lives — the half-sanitized log, the error message with a hostname buried in line 40, the config snippet that's <em>probably</em> fine. You will hit these daily, and no list anyone writes will cover them all.</p>
+
+    <p class="rv">So here's the one question I run on everything that isn't obviously on the list:</p>
+
+    <div class="pq rv">
+      <p>"If this chat showed up in a breach dump tomorrow, would anyone need to be told?"</p>
+      <cite>— The breach test. Run it before every send.</cite>
+    </div>
+
+    <p class="rv">A client. Your manager. A regulator. If the honest answer is <em>anyone at all</em> — it doesn't go in. Rewrite it until the answer is no one.</p>
+
+    <p class="rv">The reason this works is that it skips the question you can't answer — "what does this tool actually do with my data?" — and asks the one you can: <strong>what happens if it escapes?</strong> That's the same question incident response asks, and it cuts through every grey area I've hit. A log with a hostname in it fails the test. The same log with the hostname swapped for <em>"the file server"</em> passes. Now you know exactly what to fix before you send.</p>
+
+    <h3 class="rv">Describe the shape, not the instance</h3>
+
+    <p class="rv">The companion habit: you're almost never asking AI about <em>your specific case</em>. You're asking about the class of problem your case belongs to. "A Windows server is low on disk and I suspect profile bloat" gets you the same answer as pasting the real server's directory listing — without exporting anything. Train yourself to describe the shape. It's faster than sanitizing after the fact, and it makes you a better troubleshooter, because naming the class of problem is half of solving it.</p>
+
+    <h3 class="rv">When you genuinely can't tell</h3>
+
+    <p class="rv">That's not a you-problem to solve alone at 8pm. Your shop almost certainly has an internal AI policy — go read it, because it exists for exactly this moment and it's the authority on the specifics, not this article. If something's still grey after that, ask whoever's senior. Thirty seconds of asking beats any amount of cleanup, of which — remember — there is none.</p>
+
+    <div class="callout rv">
+      <div class="callout-tag">The Managed Exception</div>
+      <p>If your MSP has rolled out approved AI tooling with real data agreements behind it, the calculus changes — that's exactly what those deployments are for, and your internal policy will say what's in scope. This article is about everything else: the personal account, the free tier, the tool nobody vetted. When in doubt, assume that's what you're holding.</p>
+    </div>
+  </section>
+
+  <!-- CHECKLIST -->
+  <section class="sec" style="padding-top:72px;">
+    <div class="kit-tag rv">Preflight — Before You Paste</div>
+    <h2 class="plate rv" style="font-size:clamp(24px,4.6vw,44px);">The paste preflight</h2>
+    <p class="fn rv" style="margin-bottom:24px;">// thirty_seconds_no_cleanup()</p>
+    <p class="rv">Seven checks. Thirty seconds. The cleanup they prevent doesn't exist. Click to check off as you go.</p>
+
+    <div class="cl-prog rv" id="cl-prog"><span id="cc">0</span><span id="cl-rest"> / 7 done</span></div>
+
+    <ul class="cl rv">
+      <li onclick="chk(this)" tabindex="0" role="checkbox" aria-checked="false">
+        <div class="cb"><span class="ct">✓</span></div>
+        <div><strong>People removed.</strong> No names, emails, phone numbers, patient anything. Roles, not people.</div>
+      </li>
+      <li onclick="chk(this)" tabindex="0" role="checkbox" aria-checked="false">
+        <div class="cb"><span class="ct">✓</span></div>
+        <div><strong>Secrets removed.</strong> No passwords, keys, MFA seeds, or recovery codes — not even expired ones.</div>
+      </li>
+      <li onclick="chk(this)" tabindex="0" role="checkbox" aria-checked="false">
+        <div class="cb"><span class="ct">✓</span></div>
+        <div><strong>Network sanitized.</strong> No real IPs, hostnames, topology, or firewall rules. Placeholders carry the structure.</div>
+      </li>
+      <li onclick="chk(this)" tabindex="0" role="checkbox" aria-checked="false">
+        <div class="cb"><span class="ct">✓</span></div>
+        <div><strong>Client unidentifiable.</strong> Could a stranger work out who this is about? Then it's not ready.</div>
+      </li>
+      <li onclick="chk(this)" tabindex="0" role="checkbox" aria-checked="false">
+        <div class="cb"><span class="ct">✓</span></div>
+        <div><strong>Shape, not instance.</strong> You're describing the class of problem — not exporting your case file.</div>
+      </li>
+      <li onclick="chk(this)" tabindex="0" role="checkbox" aria-checked="false">
+        <div class="cb"><span class="ct">✓</span></div>
+        <div><strong>Breach test passed.</strong> If this chat leaked tomorrow, the honest answer to "who needs to be told" is no one.</div>
+      </li>
+      <li onclick="chk(this)" tabindex="0" role="checkbox" aria-checked="false">
+        <div class="cb"><span class="ct">✓</span></div>
+        <div><strong>Policy checked.</strong> Anything still grey, you checked your shop's AI policy or asked someone senior — before sending, not after.</div>
+      </li>
+    </ul>
+
+    <div class="closer rv">
+      <p>"The fastest way to lose a client's trust is to hand their data to someone they never agreed to trust. AI doesn't change that rule. It just makes breaking it feel like productivity."</p>
+      <cite>— Aubrey Ballard · Devfuzion</cite>
+    </div>
+  </section>
+
+</div><!-- /wrap -->
+
+<footer>
+  <div class="next">
+    <div class="next-k">Next — Issue 001</div>
+    <a href="../001/"><div class="next-t">Your AI keeps letting you <b>down.</b></div></a>
+    <p class="next-d">Now that you know what stays out of the chat — the three-layer framework for getting consistently great results from what goes in.</p>
+  </div>
+  <div class="foot">
+    <span>Devfuzion AI Field Notes</span>
+    <span>signal <b>&gt;</b> noise</span>
+    <span><a href="../">all issues</a> · <a href="https://devfuzion.com">devfuzion.com</a></span>
+  </div>
+</footer>
+
+<button id="fab" aria-label="Copy link to this article" onclick="copyLink()">⎘</button>
+<div id="fab-toast">link copied</div>
+
+<script>
+  const RM = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const rtEl = document.getElementById('rt');
+  const barEl = document.getElementById('bar');
+  const fabEl = document.getElementById('fab');
+  window.addEventListener('scroll', () => {
+    const max = document.body.scrollHeight - window.innerHeight;
+    const p = max > 0 ? window.scrollY / max : 0;
+    document.getElementById('prog').style.width = (p * 100) + '%';
+    if (p < 0.02) rtEl.textContent = '~7 min';
+    else if (p > 0.96) rtEl.textContent = '✓ read';
+    else rtEl.textContent = '~' + Math.max(1, Math.ceil(7 * (1 - p))) + ' min left';
+    barEl.classList.toggle('show', window.scrollY > 560);
+    fabEl.classList.toggle('show', window.scrollY > 900);
+  }, { passive: true });
+
+  function copyLink() {
+    navigator.clipboard.writeText(location.href).then(() => {
+      const t = document.getElementById('fab-toast');
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 1800);
+    });
+  }
+
+  const obs = new IntersectionObserver(entries => {
+    entries.filter(e => e.isIntersecting).forEach((e, i) => {
+      const el = e.target;
+      el.style.transitionDelay = Math.min(i * 75, 300) + 'ms';
+      el.classList.add('in');
+      obs.unobserve(el);
+      setTimeout(() => { el.style.transitionDelay = ''; }, 1400);
+    });
+  }, { threshold: 0.08, rootMargin: '0px 0px -30px 0px' });
+  document.querySelectorAll('.rv').forEach(el => obs.observe(el));
+
+  /* Exhibit 0: tap to expose the payload */
+  const tx = document.getElementById('tx');
+  tx.addEventListener('click', () => tx.classList.toggle('open'));
+  tx.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); tx.classList.toggle('open'); }
+  });
+
+  /* Checklist */
+  function chk(li) {
+    li.classList.toggle('chk');
+    li.setAttribute('aria-checked', li.classList.contains('chk') ? 'true' : 'false');
+    const n = document.querySelectorAll('.cl li.chk').length;
+    document.getElementById('cc').textContent = n;
+    const prog = document.getElementById('cl-prog');
+    prog.classList.toggle('full', n === 7);
+    document.getElementById('cl-rest').textContent = n === 7 ? ' / 7 — clear to paste' : ' / 7 done';
+  }
+  document.querySelectorAll('.cl li').forEach(el => {
+    el.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); el.click(); }
+    });
+  });
+</script>
+</body>
+</html>
