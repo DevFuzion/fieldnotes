@@ -132,19 +132,11 @@
   <div class="issues">
 
     <!-- ── ISSUE TEMPLATE ──
-         New issue? Copy the <a class="issue"> block below, bump the number,
-         folder, title, desc, date. Newest goes on top. Flip the previous
-         "coming soon" placeholder into a live link. ── -->
-
-    <!-- coming soon — flip to <a class="issue" href="./002/"> when it ships -->
-    <div class="issue soon">
-      <div class="issue-num">002</div>
-      <div>
-        <div class="issue-ttl">Building the Environment</div>
-        <div class="issue-desc">CLAUDE.md setup, a real LLM knowledge base, and the skill library we actually use across client work.</div>
-        <div class="issue-meta"><span class="live">in progress</span></div>
-      </div>
-    </div>
+         Order rule: live issues newest-first; the "coming soon" teaser
+         always sits BELOW the live ones. When an issue ships: copy the
+         <a class="issue"> block, bump number/folder/title/desc/date,
+         place it at the top, and move the teaser block (or a new one)
+         back to the bottom. ── -->
 
     <a class="issue" href="./001/">
       <div class="issue-num">001</div>
@@ -155,6 +147,16 @@
       </div>
       <div class="issue-arrow">→</div>
     </a>
+
+    <!-- coming soon — flip to <a class="issue" href="./002/"> and move to top when it ships -->
+    <div class="issue soon">
+      <div class="issue-num">002</div>
+      <div>
+        <div class="issue-ttl">Building the Environment</div>
+        <div class="issue-desc">CLAUDE.md setup, a real LLM knowledge base, and the skill library we actually use across client work.</div>
+        <div class="issue-meta"><span class="live">in progress</span></div>
+      </div>
+    </div>
 
   </div>
 
