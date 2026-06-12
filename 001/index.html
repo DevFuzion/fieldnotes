@@ -92,7 +92,9 @@
   .nav-tag {
     font-family: var(--mono); font-size: 11px;
     color: var(--text-dim); letter-spacing: 0.1em;
+    text-decoration: none; transition: color 0.2s;
   }
+  .nav-tag:hover { color: var(--teal); }
   .nav-btn {
     border: 1px solid rgba(46,143,212,0.4); background: transparent;
     color: var(--blue); font-family: var(--body);
@@ -587,7 +589,7 @@
 
 <nav id="nav">
   <div class="nav-logo">Devfuzion <em>/ AI Field Notes</em></div>
-  <div class="nav-tag">Issue 001</div>
+  <a class="nav-tag" href="../" title="All issues">Issue 001 · all issues ↗</a>
   <button class="nav-btn" onclick="document.getElementById('tool').scrollIntoView({behavior:'smooth'})">Build Your Prompt ↓</button>
 </nav>
 
@@ -983,7 +985,7 @@
     <span class="ft-tag">devfuzion</span>
     <span class="ft-tag">systems-thinking</span>
   </div>
-  <div class="ft-by">Written by Aubrey Ballard · <a href="#">devfuzion.com</a></div>
+  <div class="ft-by">Written by Aubrey Ballard · <a href="../">all issues</a> · <a href="https://devfuzion.com">devfuzion.com</a></div>
 </footer>
 
 <button id="fab" aria-label="Copy link to this article" onclick="copyLink()">⎘</button>
