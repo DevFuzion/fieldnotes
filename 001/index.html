@@ -1,0 +1,1430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="A three-layer framework for getting consistently great results from AI tools — pressure-tested against real MSP work. Devfuzion AI Field Notes, Issue 001.">
+<!-- SOCIAL CARDS — if you skip the custom domain, find-replace
+     https://fieldnotes.devfuzion.com with your real Pages URL
+     (e.g. https://YOURORG.github.io/fieldnotes) -->
+<meta property="og:type" content="article">
+<meta property="og:title" content="Your AI Keeps Letting You Down. Here's Why.">
+<meta property="og:description" content="A three-layer framework for getting consistently great results from AI tools — pressure-tested against real MSP work. Issue 001 of Devfuzion AI Field Notes.">
+<meta property="og:url" content="https://fieldnotes.devfuzion.com/001/">
+<meta property="og:image" content="https://fieldnotes.devfuzion.com/assets/og-001.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:site_name" content="Devfuzion AI Field Notes">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Your AI Keeps Letting You Down. Here's Why.">
+<meta name="twitter:description" content="The Karpathy Method, pressure-tested against real MSP work. Interactive — build your own spec prompt.">
+<meta name="twitter:image" content="https://fieldnotes.devfuzion.com/assets/og-001.png">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230B1120'/%3E%3Ccircle cx='9' cy='16' r='3.4' fill='%232E8FD4'/%3E%3Ccircle cx='23' cy='16' r='3.4' fill='%2314B8A6'/%3E%3Cline x1='12.4' y1='16' x2='19.6' y2='16' stroke='%2314B8A6' stroke-width='1.6' stroke-dasharray='2 2.4'/%3E%3C/svg%3E">
+<title>Why Your AI Prompts Keep Failing — Devfuzion AI Field Notes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --base: #0B1120;
+    --surface: #111827;
+    --surface2: #1a2535;
+    --navy: #1E3A5F;
+    --blue: #2E8FD4;
+    --teal: #14B8A6;
+    --text: #E8EDF2;
+    --text-muted: #7A92A8;
+    --text-dim: #4a6070;
+    --mono: 'JetBrains Mono', monospace;
+    --body: 'Inter', sans-serif;
+    --display: 'Syne', sans-serif;
+    --red: #F87171;
+    --green: #34D399;
+    --yellow: #FBBF24;
+  }
+
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--base); color: var(--text);
+    font-family: var(--body); font-size: 17px;
+    line-height: 1.75; overflow-x: hidden;
+  }
+
+  :focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; border-radius: 3px; }
+
+  /* ZONE TINTS — ambient color temperature per layer */
+  .tint {
+    position: fixed; inset: 0; z-index: 0;
+    pointer-events: none; opacity: 0;
+    transition: opacity 1.6s ease;
+  }
+  .tint.on { opacity: 1; }
+  #tint1 { background: radial-gradient(ellipse 110% 65% at 50% 8%, rgba(46,143,212,0.085), transparent 70%); }
+  #tint2 { background: radial-gradient(ellipse 110% 65% at 50% 8%, rgba(20,184,166,0.075), transparent 70%); }
+  #tint3 { background: radial-gradient(ellipse 110% 65% at 50% 8%, rgba(144,184,216,0.06), transparent 70%); }
+
+  /* PROGRESS */
+  #prog {
+    position: fixed; top: 0; left: 0; height: 3px;
+    background: linear-gradient(90deg, var(--blue), var(--teal));
+    width: 0; z-index: 200; transition: width 0.1s linear;
+    box-shadow: 0 0 10px rgba(20,184,166,0.4);
+  }
+
+  /* NAV */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    padding: 16px 40px; display: flex;
+    align-items: center; justify-content: space-between;
+    background: rgba(11,17,32,0.88); backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-bottom: 1px solid rgba(46,143,212,0.1);
+    transition: transform 0.35s ease;
+  }
+  nav.hide { transform: translateY(-101%); }
+  .nav-logo {
+    font-family: var(--display); font-weight: 800;
+    font-size: 14px; letter-spacing: 0.06em;
+    color: var(--text); text-transform: uppercase;
+  }
+  .nav-logo em { color: var(--teal); font-style: normal; }
+  .nav-tag {
+    font-family: var(--mono); font-size: 11px;
+    color: var(--text-dim); letter-spacing: 0.1em;
+  }
+  .nav-btn {
+    border: 1px solid rgba(46,143,212,0.4); background: transparent;
+    color: var(--blue); font-family: var(--body);
+    font-size: 13px; font-weight: 500;
+    padding: 7px 16px; border-radius: 4px; cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+  }
+  .nav-btn:hover { background: var(--blue); color: #0B1120; }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 130px 24px 100px; text-align: center;
+    position: relative; overflow: hidden; z-index: 1;
+  }
+  #hero-cv {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%; display: block;
+  }
+  .hero-glow {
+    position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(ellipse 70% 50% at 50% 42%, rgba(46,143,212,0.07), transparent 70%);
+  }
+  .hero > *:not(#hero-cv):not(.hero-glow) { position: relative; z-index: 2; }
+  .hero-kicker {
+    font-family: var(--mono); font-size: 12px;
+    color: var(--teal); letter-spacing: 0.18em;
+    text-transform: uppercase; margin-bottom: 22px;
+    display: flex; align-items: center; gap: 12px;
+    opacity: 0; animation: rise 0.7s ease forwards;
+  }
+  .hero-kicker::before, .hero-kicker::after {
+    content: ''; width: 28px; height: 1px; background: var(--teal); opacity: 0.4;
+  }
+  h1 {
+    font-family: var(--display); font-weight: 800;
+    font-size: clamp(38px, 6.5vw, 74px);
+    line-height: 1.06; letter-spacing: -0.025em;
+    margin-bottom: 28px; max-width: 820px;
+  }
+  h1 span {
+    display: inline-block; opacity: 0;
+    transform: translateY(26px);
+    animation: rise 0.75s cubic-bezier(0.2, 0.7, 0.3, 1) forwards;
+  }
+  h1 span:nth-of-type(1) { animation-delay: 0.12s; }
+  h1 span:nth-of-type(2) { animation-delay: 0.27s; }
+  h1 span:nth-of-type(3) { animation-delay: 0.42s; }
+  h1 .hi { color: var(--text); }
+  h1 .lo {
+    background: linear-gradient(120deg, var(--blue) 0%, var(--teal) 50%, var(--blue) 100%);
+    background-size: 220% 100%;
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: rise 0.75s cubic-bezier(0.2, 0.7, 0.3, 1) 0.27s forwards,
+               sheen 7s ease-in-out 1.2s infinite alternate;
+  }
+  @keyframes rise { to { opacity: 1; transform: none; } }
+  @keyframes sheen { from { background-position: 0% 0; } to { background-position: 100% 0; } }
+  .hero-deck {
+    font-size: 18px; font-weight: 300; color: var(--text-muted);
+    max-width: 520px; line-height: 1.7; margin-bottom: 44px;
+    opacity: 0; animation: rise 0.7s ease 0.58s forwards;
+  }
+  .byline {
+    display: flex; align-items: center; gap: 14px;
+    font-size: 14px; color: var(--text-dim);
+    opacity: 0; animation: rise 0.7s ease 0.72s forwards;
+  }
+  .byline-av {
+    width: 38px; height: 38px; border-radius: 50%;
+    background: linear-gradient(135deg, #1E3A5F, #2E8FD4);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--display); font-weight: 800; font-size: 14px;
+    color: var(--text); flex-shrink: 0;
+  }
+  .byline strong { color: var(--text); font-weight: 500; }
+  .sep { width: 3px; height: 3px; border-radius: 50%; background: var(--text-dim); }
+  #rt { font-variant-numeric: tabular-nums; }
+  .scroll-hint {
+    position: absolute; bottom: 32px; left: 50%;
+    transform: translateX(-50%);
+    font-family: var(--mono); font-size: 11px;
+    color: var(--text-dim); letter-spacing: 0.12em;
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    animation: bob 2.2s ease-in-out infinite;
+  }
+  @keyframes bob { 0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(7px)} }
+
+  /* CONTENT */
+  .wrap { max-width: 760px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 1; }
+
+  p { margin-bottom: 22px; color: #C0D0DC; font-weight: 300; line-height: 1.8; }
+  p strong { color: var(--text); font-weight: 500; }
+  p em { color: var(--text-muted); font-style: italic; }
+
+  h2 {
+    font-family: var(--display); font-weight: 800;
+    font-size: 30px; line-height: 1.15;
+    letter-spacing: -0.02em; color: var(--text);
+    margin: 56px 0 18px;
+  }
+  h3 {
+    font-family: var(--display); font-weight: 700;
+    font-size: 19px; color: var(--text);
+    margin: 44px 0 14px; letter-spacing: -0.01em;
+  }
+
+  /* DIVIDERS — lines draw in from the edges on reveal */
+  .divider {
+    display: flex; align-items: center; gap: 14px;
+    margin: 72px 0 52px;
+  }
+  .divider-line {
+    flex: 1; height: 1px; background: rgba(46,143,212,0.18);
+    transform: scaleX(0);
+    transition: transform 0.9s cubic-bezier(0.3, 0, 0.2, 1) 0.05s;
+  }
+  .divider-line:first-child { transform-origin: left center; }
+  .divider-line:last-child { transform-origin: right center; }
+  .divider.in .divider-line { transform: scaleX(1); }
+  .divider-label {
+    font-family: var(--mono); font-size: 11px;
+    color: var(--text-dim); letter-spacing: 0.15em;
+    text-transform: uppercase; white-space: nowrap;
+    opacity: 0; transition: opacity 0.6s ease 0.45s;
+  }
+  .divider.in .divider-label { opacity: 1; }
+
+  /* LAYER HEADER */
+  .layer-hd {
+    display: flex; align-items: flex-start;
+    gap: 18px; margin-bottom: 26px;
+  }
+  .layer-pill {
+    flex-shrink: 0; padding: 6px 14px;
+    border-radius: 6px; font-family: var(--display);
+    font-size: 11px; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase;
+  }
+  .pill-1 { background: rgba(46,143,212,0.12); color: var(--blue); border: 1px solid rgba(46,143,212,0.25); margin-top: 10px; }
+  .pill-2 { background: rgba(20,184,166,0.1); color: var(--teal); border: 1px solid rgba(20,184,166,0.25); margin-top: 10px; }
+  .pill-3 { background: rgba(30,58,95,0.35); color: #90b8d8; border: 1px solid rgba(144,184,216,0.2); margin-top: 10px; }
+  .layer-hd h2 { margin: 0 0 6px; font-size: 34px; }
+  .layer-hd .sub { font-family: var(--mono); font-size: 12px; color: var(--text-dim); letter-spacing: 0.06em; }
+
+  /* CALLOUT */
+  .callout {
+    border-radius: 8px; padding: 22px 26px; margin: 32px 0;
+    background: var(--surface); border-left: 3px solid var(--blue);
+  }
+  .callout.teal { border-color: var(--teal); }
+  .callout.warn { border-color: var(--yellow); }
+  .callout-tag {
+    font-family: var(--mono); font-size: 11px;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    margin-bottom: 10px; color: var(--blue);
+  }
+  .callout.teal .callout-tag { color: var(--teal); }
+  .callout.warn .callout-tag { color: var(--yellow); }
+  .callout p { margin: 0; font-size: 15px; }
+
+  /* PULL QUOTE */
+  .pq {
+    margin: 44px 0; padding: 28px 32px;
+    background: rgba(46,143,212,0.04);
+    border-left: 3px solid var(--blue);
+    border-radius: 0 8px 8px 0;
+  }
+  .pq.teal { border-color: var(--teal); background: rgba(20,184,166,0.04); }
+  .pq p {
+    font-family: var(--display); font-size: 21px; font-weight: 600;
+    line-height: 1.4; color: var(--text); font-style: italic;
+    margin-bottom: 10px;
+  }
+  .pq cite { font-family: var(--mono); font-size: 12px; color: var(--text-dim); font-style: normal; letter-spacing: 0.07em; }
+
+  /* CODE INLINE */
+  code {
+    font-family: var(--mono); font-size: 13px;
+    background: rgba(255,255,255,0.07);
+    padding: 2px 7px; border-radius: 4px; color: #90c8e8;
+  }
+
+  /* TERMINAL — types itself on scroll entry */
+  .term {
+    background: #080f1c; border-radius: 10px;
+    border: 1px solid rgba(46,143,212,0.18);
+    overflow: hidden; margin: 36px 0;
+  }
+  .term-bar {
+    background: #111827; padding: 11px 16px;
+    display: flex; align-items: center; gap: 7px;
+  }
+  .dot { width: 11px; height: 11px; border-radius: 50%; }
+  .dot.r { background: #FF5F57; }
+  .dot.y { background: #FEBC2E; }
+  .dot.g { background: #28C840; }
+  .term-label { font-family: var(--mono); font-size: 12px; color: var(--text-dim); margin-left: 6px; }
+  .term-body {
+    padding: 22px; font-family: var(--mono); font-size: 14px;
+    line-height: 1.9; white-space: pre; overflow-x: auto;
+    min-height: 320px;
+  }
+  .t-p { color: var(--teal); }
+  .t-c { color: var(--text); }
+  .t-o { color: var(--text-muted); }
+  .t-e { color: var(--red); }
+  .t-s { color: var(--green); }
+  .cursor {
+    display: inline-block; width: 8px; height: 14px;
+    background: var(--teal); vertical-align: middle;
+    animation: blink 1s step-end infinite; margin-left: 2px;
+  }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  /* COMPARE */
+  .cmp { margin: 36px 0; }
+  .cmp-tabs { display: flex; border-radius: 6px 6px 0 0; overflow: hidden; }
+  .cmp-tab {
+    flex: 1; padding: 11px 14px; border: none; cursor: pointer;
+    font-family: var(--mono); font-size: 13px;
+    background: var(--surface2); color: var(--text-muted);
+    transition: background 0.2s, color 0.2s; text-align: center; letter-spacing: 0.04em;
+    border-bottom: 2px solid transparent;
+  }
+  .cmp-tab.a-bad { background: rgba(248,113,113,0.1); color: var(--red); border-bottom-color: var(--red); }
+  .cmp-tab.a-good { background: rgba(52,211,153,0.08); color: var(--green); border-bottom-color: var(--green); }
+  .cmp-panel {
+    display: none; padding: 20px 22px;
+    font-family: var(--mono); font-size: 14px; line-height: 1.85;
+    border: 1px solid rgba(255,255,255,0.07);
+    border-top: none; border-radius: 0 0 6px 6px;
+  }
+  .cmp-panel.show { display: block; animation: fu 0.25s ease; }
+  .cmp-panel.bad { background: rgba(248,113,113,0.04); color: #fca5a5; border-color: rgba(248,113,113,0.12); }
+  .cmp-panel.good { background: rgba(52,211,153,0.04); color: #6ee7b7; border-color: rgba(52,211,153,0.12); }
+  .cmp-lbl { font-size: 11px; letter-spacing: 0.1em; opacity: 0.55; margin-bottom: 10px; }
+  .cmp-row { margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+  .cmp-row:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+  .cmp-context { font-size: 11px; opacity: 0.5; margin-bottom: 4px; letter-spacing: 0.06em; }
+
+  /* ACCORDION CARDS */
+  .cards { margin: 28px 0; display: flex; flex-direction: column; gap: 10px; }
+  .card {
+    background: var(--surface); border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 8px; overflow: hidden; cursor: pointer;
+    transition: border-color 0.2s;
+  }
+  .card:hover { border-color: rgba(46,143,212,0.25); }
+  .card.open { border-color: rgba(46,143,212,0.3); }
+  .card-hd {
+    padding: 16px 18px; display: flex;
+    align-items: center; justify-content: space-between; gap: 12px;
+  }
+  .card-hd-l { display: flex; align-items: center; gap: 13px; }
+  .card-ico {
+    width: 34px; height: 34px; border-radius: 7px;
+    display: flex; align-items: center; justify-content: center; font-size: 16px;
+    flex-shrink: 0;
+  }
+  .card-ico.b { background: rgba(46,143,212,0.1); }
+  .card-ico.t { background: rgba(20,184,166,0.1); }
+  .card-ico.y { background: rgba(251,191,36,0.08); }
+  .card-ttl { font-family: var(--display); font-weight: 600; font-size: 15px; }
+  .card-sub { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
+  .card-chev { color: var(--text-dim); font-size: 13px; transition: transform 0.25s; flex-shrink: 0; }
+  .card.open .card-chev { transform: rotate(90deg); }
+  .card-bd {
+    max-height: 0; overflow: hidden;
+    padding: 0 18px; font-size: 15px; color: #A0B8C8;
+    transition: max-height 0.35s ease, padding 0.25s ease;
+  }
+  .card.open .card-bd { max-height: 400px; padding: 0 18px 18px; }
+  .card-bd p { font-size: 15px; margin-bottom: 10px; }
+  .card-bd p:last-child { margin-bottom: 0; }
+
+  /* GUARDRAILS */
+  .gr-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin: 28px 0; }
+  .gr-col { border-radius: 8px; overflow: hidden; }
+  .gr-hd {
+    padding: 13px 14px; text-align: center;
+    font-family: var(--display); font-size: 12px; font-weight: 700;
+    letter-spacing: 0.05em;
+  }
+  .gr-hd.g { background: rgba(52,211,153,0.14); color: var(--green); }
+  .gr-hd.y { background: rgba(251,191,36,0.1); color: var(--yellow); }
+  .gr-hd.r { background: rgba(248,113,113,0.1); color: var(--red); }
+  .gr-row {
+    padding: 10px 13px; font-size: 13px; line-height: 1.5;
+    border-top: 1px solid rgba(255,255,255,0.04);
+  }
+  .gr-row.g { background: rgba(52,211,153,0.035); color: #a7f3d0; }
+  .gr-row.y { background: rgba(251,191,36,0.035); color: #fde68a; }
+  .gr-row.r { background: rgba(248,113,113,0.035); color: #fecaca; }
+
+  /* ASSEMBLER */
+  .asm {
+    background: #090f1d; border: 1px solid rgba(46,143,212,0.22);
+    border-radius: 12px; overflow: hidden; margin: 48px 0;
+  }
+  .asm-hd {
+    background: var(--surface2); padding: 18px 22px;
+    border-bottom: 1px solid rgba(46,143,212,0.1);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .asm-ttl { font-family: var(--display); font-weight: 700; font-size: 17px; }
+  .asm-badge {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em;
+    background: rgba(20,184,166,0.12); color: var(--teal);
+    padding: 4px 10px; border-radius: 4px;
+  }
+  .asm-body { padding: 26px 22px; }
+  .fg { margin-bottom: 20px; }
+  .fl {
+    font-family: var(--mono); font-size: 11px;
+    color: var(--teal); letter-spacing: 0.1em;
+    text-transform: uppercase; margin-bottom: 8px;
+  }
+  .fi, .fs {
+    width: 100%; background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.09);
+    border-radius: 6px; padding: 11px 14px;
+    color: var(--text); font-family: var(--body);
+    font-size: 15px; outline: none; transition: border-color 0.2s;
+    appearance: none;
+  }
+  .fi:focus, .fs:focus { border-color: var(--blue); }
+  .fi::placeholder { color: var(--text-dim); }
+  .fs option { background: #1a2535; }
+  .fr { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .asm-go {
+    width: 100%; padding: 14px;
+    background: linear-gradient(135deg, var(--blue), var(--teal));
+    border: none; border-radius: 7px; color: #0B1120;
+    font-family: var(--display); font-weight: 800; font-size: 16px;
+    cursor: pointer; transition: opacity 0.2s; margin-top: 4px;
+    letter-spacing: 0.01em;
+  }
+  .asm-go:hover { opacity: 0.87; }
+  .out-block { display: none; margin-top: 24px; animation: fu 0.3s ease; }
+  .out-block.show { display: block; }
+  @keyframes fu { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
+  .out-lbl {
+    font-family: var(--mono); font-size: 11px;
+    color: var(--text-dim); letter-spacing: 0.12em;
+    text-transform: uppercase; margin-bottom: 10px;
+  }
+  .out-pre {
+    background: #040910; border: 1px solid rgba(20,184,166,0.18);
+    border-radius: 8px; padding: 20px;
+    font-family: var(--mono); font-size: 13.5px;
+    line-height: 1.85; color: #90c8e8;
+    white-space: pre-wrap; word-break: break-word;
+    max-height: 380px; overflow-y: auto;
+  }
+  .out-pre .ol {
+    display: block; opacity: 0; transform: translateX(-6px);
+    animation: lineIn 0.28s ease forwards;
+    min-height: 1em;
+  }
+  @keyframes lineIn { to { opacity: 1; transform: none; } }
+  .cp-btn {
+    margin-top: 12px; padding: 9px 18px;
+    background: transparent; border: 1px solid rgba(20,184,166,0.3);
+    color: var(--teal); border-radius: 5px;
+    font-family: var(--mono); font-size: 12px; letter-spacing: 0.06em;
+    cursor: pointer; transition: background 0.2s, color 0.2s;
+  }
+  .cp-btn:hover { background: rgba(20,184,166,0.08); }
+  .cp-btn.done { color: var(--green); border-color: rgba(52,211,153,0.3); }
+
+  /* CHECKLIST */
+  .cl { list-style: none; margin: 28px 0; }
+  .cl li {
+    display: flex; align-items: flex-start; gap: 13px;
+    padding: 14px 16px; margin-bottom: 8px;
+    background: var(--surface); border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 7px; cursor: pointer; font-size: 15px;
+    color: #9EBBCC; transition: background 0.2s, border-color 0.2s, color 0.2s;
+    user-select: none;
+  }
+  .cl li:hover { border-color: rgba(20,184,166,0.18); }
+  .cl li.chk { background: rgba(20,184,166,0.06); border-color: rgba(20,184,166,0.2); color: var(--text); }
+  .cb {
+    width: 21px; height: 21px; flex-shrink: 0;
+    border: 2px solid rgba(255,255,255,0.12); border-radius: 5px;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.2s, border-color 0.2s; margin-top: 2px;
+  }
+  .cl li.chk .cb { background: var(--teal); border-color: var(--teal); }
+  .ct { font-size: 12px; opacity: 0; transition: opacity 0.15s; color: #0B1120; font-weight: 700; }
+  .cl li.chk .ct { opacity: 1; }
+  .cl-prog {
+    font-family: var(--mono); font-size: 13px;
+    color: var(--text-dim); text-align: right; margin-bottom: 20px;
+    transition: color 0.3s;
+  }
+  .cl-prog #cc { color: var(--teal); }
+  .cl-prog.full, .cl-prog.full #cc { color: var(--green); }
+
+  /* FLOATING COPY-LINK */
+  #fab {
+    position: fixed; right: 22px; bottom: 22px; z-index: 90;
+    width: 46px; height: 46px; border-radius: 50%;
+    background: var(--surface2); color: var(--teal);
+    border: 1px solid rgba(20,184,166,0.3);
+    font-size: 17px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; transform: translateY(14px); pointer-events: none;
+    transition: opacity 0.4s ease, transform 0.4s ease, background 0.2s;
+    box-shadow: 0 6px 22px rgba(0,0,0,0.35);
+  }
+  #fab.show { opacity: 1; transform: none; pointer-events: auto; }
+  #fab:hover { background: rgba(20,184,166,0.12); }
+  #fab-toast {
+    position: fixed; right: 22px; bottom: 78px; z-index: 90;
+    font-family: var(--mono); font-size: 12px;
+    background: rgba(20,184,166,0.12); color: var(--teal);
+    border: 1px solid rgba(20,184,166,0.3);
+    padding: 7px 13px; border-radius: 6px;
+    opacity: 0; transform: translateY(6px); pointer-events: none;
+    transition: opacity 0.3s, transform 0.3s;
+  }
+  #fab-toast.show { opacity: 1; transform: none; }
+
+  /* FOOTER */
+  footer {
+    margin-top: 100px; padding: 64px 24px;
+    border-top: 1px solid rgba(255,255,255,0.05);
+    text-align: center; position: relative; z-index: 1;
+  }
+  .ft-series { font-family: var(--mono); font-size: 12px; color: var(--text-dim); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 20px; }
+  .ft-next { font-family: var(--display); font-size: 26px; font-weight: 800; margin-bottom: 12px; }
+  .ft-sub { color: var(--text-muted); font-size: 15px; max-width: 420px; margin: 0 auto 30px; }
+  .ft-tags { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-bottom: 36px; }
+  .ft-tag {
+    font-family: var(--mono); font-size: 12px; letter-spacing: 0.06em;
+    padding: 5px 12px; background: var(--surface);
+    border: 1px solid rgba(255,255,255,0.07);
+    color: var(--text-muted); border-radius: 4px;
+  }
+  .ft-by { font-size: 13px; color: var(--text-dim); }
+  .ft-by a { color: var(--blue); text-decoration: none; }
+
+  /* REVEAL */
+  .rv {
+    opacity: 0; transform: translateY(22px);
+    filter: blur(3px);
+    transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.2, 0.6, 0.3, 1), filter 0.6s ease;
+  }
+  .rv.in { opacity: 1; transform: none; filter: none; }
+
+  @media(max-width:640px) {
+    nav { padding: 12px 16px; }
+    .nav-btn { display: none; }
+    .fr { grid-template-columns: 1fr; }
+    .gr-grid { grid-template-columns: 1fr; }
+    h1 { font-size: 36px; }
+    .term-body { font-size: 12.5px; padding: 16px; min-height: 280px; }
+    .layer-hd { flex-direction: column; gap: 10px; }
+    .layer-pill { margin-top: 0; }
+    #fab { right: 14px; bottom: 14px; }
+    #fab-toast { right: 14px; bottom: 70px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .rv { opacity: 1; transform: none; filter: none; transition: none; }
+    .divider-line { transform: scaleX(1) !important; transition: none; }
+    .divider-label { opacity: 1; transition: none; }
+    h1 span, .hero-kicker, .hero-deck, .byline { animation: none; opacity: 1; transform: none; }
+    h1 .lo { animation: none; opacity: 1; }
+    .scroll-hint { animation: none; }
+    .cursor { animation: none; }
+    .out-pre .ol { animation: none; opacity: 1; transform: none; }
+    .tint { transition: none; }
+    nav { transition: none; }
+  }
+
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: var(--base); }
+  ::-webkit-scrollbar-thumb { background: var(--navy); border-radius: 3px; }
+</style>
+</head>
+<body>
+<div class="tint" id="tint1"></div>
+<div class="tint" id="tint2"></div>
+<div class="tint" id="tint3"></div>
+<div id="prog"></div>
+
+<nav id="nav">
+  <div class="nav-logo">Devfuzion <em>/ AI Field Notes</em></div>
+  <div class="nav-tag">Issue 001</div>
+  <button class="nav-btn" onclick="document.getElementById('tool').scrollIntoView({behavior:'smooth'})">Build Your Prompt ↓</button>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-glow"></div>
+  <canvas id="hero-cv" aria-hidden="true"></canvas>
+  <div class="hero-kicker">AI Field Notes — Issue 001</div>
+  <h1>
+    <span class="hi">Your AI Keeps</span><br>
+    <span class="lo">Letting You Down.</span><br>
+    <span class="hi">Here's Why.</span>
+  </h1>
+  <p class="hero-deck">I've watched techs spend an hour fighting Claude over a ticket summary that should've taken three minutes. The tool isn't broken. The approach is.</p>
+  <div class="byline">
+    <div class="byline-av">AB</div>
+    <div>
+      <div><strong>Aubrey Ballard</strong></div>
+      <div>Sr. Systems Analyst · Devfuzion</div>
+    </div>
+    <div class="sep"></div>
+    <span id="rt">~9 min</span>
+    <div class="sep"></div>
+    <span>Interactive</span>
+  </div>
+  <div class="scroll-hint">↓<br>scroll</div>
+</section>
+
+<!-- BODY -->
+<div class="wrap">
+
+<section class="zone" id="intro" data-tint="">
+
+  <p class="rv">Here's a scene I lived: a tech on my team spent about 45 minutes bouncing back and forth with Claude trying to get a decent client-facing summary for a disk space ticket. The responses kept being either too technical, too vague, or just flat wrong about what we actually did. He was frustrated. I looked at the prompt. It said: <em>"Summarize this ticket for the client."</em></p>
+
+  <p class="rv">That's it. No context about the client. No context about what tone we use with them. No context about which parts of the resolution actually mattered to a non-technical office manager versus the ten things we tried that didn't work. Claude had nothing. So it filled in the blanks — and it filled them in wrong.</p>
+
+  <p class="rv">I've seen this pattern repeat constantly — across our team, and from every tech I talk to who's trying to make AI actually work. Good techs, genuinely trying to use AI as a force multiplier, walking away from it thinking the tool doesn't work. It does work. But there's a gap between what's in your head and what ends up in the prompt — and AI cannot cross that gap on its own. It doesn't know what it doesn't know.</p>
+
+  <div class="pq rv">
+    <p>"Every assumption AI makes on your behalf is a chance to drift from what you actually wanted."</p>
+    <cite>— Something I say too often in our team standups</cite>
+  </div>
+
+  <p class="rv">I came across a framework from Andrej Karpathy — the AI researcher who ran the AI team at Tesla and was part of the founding team at OpenAI — that gave me a cleaner way to think about this problem. He breaks it into three layers. I've been pressure-testing these layers against real MSP work for months. Here's what that looks like when your stack is M365, Meraki, and Azure, and your clients aren't patient.</p>
+
+</section>
+
+<!-- LAYER 1 -->
+<section class="zone" data-tint="tint1">
+
+  <div class="divider rv"><div class="divider-line"></div><div class="divider-label">Layer One</div><div class="divider-line"></div></div>
+
+  <div class="layer-hd rv">
+    <div class="layer-pill pill-1">Layer 1</div>
+    <div>
+      <h2>Stop Giving AI Tasks.<br>Give It Goals.</h2>
+      <div class="sub">// close_the_context_gap()</div>
+    </div>
+  </div>
+
+  <p class="rv">A task is what you want done. A goal is why you want it done and what a good result actually looks like. That distinction sounds obvious, but almost nobody carries it into their prompts. I didn't for a long time.</p>
+
+  <p class="rv">When I write a ticket runbook, I'm not just documenting steps. I'm writing something a Tier 1 tech can follow at 8pm on a weekend when I'm not available and the client is on the phone. The audience matters. The stakes matter. The moment the tech gets stuck matters. None of that lives in "write a runbook for resetting MFA."</p>
+
+  <div class="term rv" id="term">
+    <div class="term-bar">
+      <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+      <span class="term-label">a ticket summary. every msp has had this exact moment.</span>
+    </div>
+    <div class="term-body" id="term-body"><span class="cursor" id="term-cur"></span></div>
+  </div>
+
+  <p class="rv">Same information. Completely different output. The only thing that changed was I told it <em>who</em> I was writing for and <em>what success looked like</em>.</p>
+
+  <h3 class="rv">The interview move</h3>
+
+  <p class="rv">For anything bigger than a quick summary — a project, a deployment plan, a client-facing doc — I've started having Claude interview me before it does anything. I just say: <em>"Before you start, ask me one question at a time to understand the actual goal here. Don't begin until you've got it."</em></p>
+
+  <p class="rv">It sounds like extra work. It isn't. It forces me to articulate things I'm holding in my head that I'd otherwise assume were obvious. Half the time I realize the goal I thought I had wasn't the real goal. Five minutes of questions saves thirty minutes of revision.</p>
+
+  <h3 class="rv">Agile over waterfall — every time</h3>
+
+  <p class="rv">The other thing that kills AI-assisted work is handing over a big task and waiting for the finished result. Waterfall prompting fails the same way waterfall projects fail: the cost of a bad assumption grows with every step built on top of it. I've had Claude write entire runbooks that were technically accurate and completely wrong for our environment — because an assumption it made in step three was load-bearing by step fourteen. The output looks complete. It passes a glance. The damage doesn't surface until someone follows it.</p>
+
+  <p class="rv">The fix is checkpoints — the same discipline we'd never let a client skip. Break the work into stages and review each one before the next starts. When Claude drifts, you catch it at the stage boundary, where the fix costs a sentence. Catch it at the end and the fix costs the deliverable. It's the same reason we don't do a full network overhaul in one change window. Small chunks. Confirm the direction. Move forward.</p>
+
+  <h3 class="rv">What "precise" actually means in practice</h3>
+
+  <div class="cmp rv" data-cid="1">
+    <div class="cmp-tabs">
+      <button class="cmp-tab a-bad" onclick="swapCmp(1,'bad')">❌ What we actually type</button>
+      <button class="cmp-tab" onclick="swapCmp(1,'good')">✅ What we should type</button>
+    </div>
+    <div class="cmp-panel bad show" id="c1-bad">
+      <div class="cmp-lbl">THE VAGUE VERSION</div>
+      <div class="cmp-row">
+        <div class="cmp-context">RUNBOOK REQUEST</div>
+        "Write a runbook for resetting MFA."
+      </div>
+      <div class="cmp-row">
+        <div class="cmp-context">TICKET SUMMARY</div>
+        "Summarize this ticket."
+      </div>
+      <div class="cmp-row">
+        <div class="cmp-context">SCRIPT REQUEST</div>
+        "Write a script to audit SSIDs."
+      </div>
+    </div>
+    <div class="cmp-panel good" id="c1-good">
+      <div class="cmp-lbl">THE VERSION THAT WORKS</div>
+      <div class="cmp-row">
+        <div class="cmp-context">RUNBOOK REQUEST</div>
+        "Write a runbook for resetting MFA on a locked M365 account. Audience: Tier 1 tech, first week. They should be able to follow this solo at 8pm. Include what to check before escalating. Use our existing format."
+      </div>
+      <div class="cmp-row">
+        <div class="cmp-context">TICKET SUMMARY</div>
+        "Summarize for a non-technical office manager. What was wrong, what we did, what they should expect. Three short paragraphs. No jargon. Warm but professional."
+      </div>
+      <div class="cmp-row">
+        <div class="cmp-context">SCRIPT REQUEST</div>
+        "Python script using the Meraki SDK. Audit SSIDs across all orgs I have access to. Flag mismatches against a reference config. Output to CSV. Don't modify anything."
+      </div>
+    </div>
+  </div>
+
+  <div class="callout rv">
+    <div class="callout-tag">From My Stack</div>
+    <p>Every automation and audit script I've shipped for clients started with a prompt that defined exactly what "done" looked like before a line of code got written. The ones that needed the most revision? Always the ones where I started with a vague ask and figured I'd know good when I saw it.</p>
+  </div>
+
+</section>
+
+<!-- LAYER 2 -->
+<section class="zone" data-tint="tint2">
+
+  <div class="divider rv"><div class="divider-line"></div><div class="divider-label">Layer Two</div><div class="divider-line"></div></div>
+
+  <div class="layer-hd rv">
+    <div class="layer-pill pill-2">Layer 2</div>
+    <div>
+      <h2>Define "Done"<br>Before You Start.</h2>
+      <div class="sub">// verification_first()</div>
+    </div>
+  </div>
+
+  <p class="rv">The spec tells AI what to build. The verifier tells it how to know when it got it right. These are different things, and leaving the second one out is how you end up reviewing AI output by vibes.</p>
+
+  <p class="rv">I've learned to ask myself one question before I send any significant prompt: <em>How will I know this is correct when I read it back?</em> If the answer is "I'll just know," the prompt isn't ready yet. If I can't define done, Claude definitely can't.</p>
+
+  <div class="cards rv">
+    <div class="card" onclick="tog(this)" tabindex="0" role="button" aria-expanded="false">
+      <div class="card-hd">
+        <div class="card-hd-l">
+          <div class="card-ico b">📋</div>
+          <div>
+            <div class="card-ttl">Set the standard before you ask</div>
+            <div class="card-sub">What good looks like, in words</div>
+          </div>
+        </div>
+        <div class="card-chev">▶</div>
+      </div>
+      <div class="card-bd">
+        <p>Before Claude touches anything, write out your pass criteria. Not "looks professional" — something you could hand to a stranger and have them evaluate. "Three sections. Each ends with a concrete recommendation. No bullet points. Matches the format of last month's report. Under 400 words."</p>
+        <p>This isn't just for Claude. It forces you to be clear about what you actually want. Half the revision cycles I see — on my team and everywhere else — happen because the person prompting didn't know what they wanted until they saw something wrong.</p>
+      </div>
+    </div>
+    <div class="card" onclick="tog(this)" tabindex="0" role="button" aria-expanded="false">
+      <div class="card-hd">
+        <div class="card-hd-l">
+          <div class="card-ico t">🔗</div>
+          <div>
+            <div class="card-ttl">Connect it to something real</div>
+            <div class="card-sub">External signal beats gut checks</div>
+          </div>
+        </div>
+        <div class="card-chev">▶</div>
+      </div>
+      <div class="card-bd">
+        <p>The strongest verifications I've run are the ones grounded in something concrete. If you're writing a client report, give Claude the structure and tone expectations up front — the section order, the voice, how we close — rather than leaving it to guess what a "professional report" looks like. Format and style guidance, not raw data.</p>
+        <p>When I had Claude help build the Azure Function proxy for our performance platform, I made it test against the live endpoint after each change instead of just confirming the code looked right. Catching issues at the deploy level instead of the review level saved real time.</p>
+      </div>
+    </div>
+    <div class="card" onclick="tog(this)" tabindex="0" role="button" aria-expanded="false">
+      <div class="card-hd">
+        <div class="card-hd-l">
+          <div class="card-ico y">🔄</div>
+          <div>
+            <div class="card-ttl">Second pass from a fresh context</div>
+            <div class="card-sub">One model's blind spot is another's flag</div>
+          </div>
+        </div>
+        <div class="card-chev">▶</div>
+      </div>
+      <div class="card-bd">
+        <p>For things that really matter — client-facing docs, anything touching production, any code that runs unattended — I'll take the output and drop it into a fresh session with a different model or just a fresh Claude thread with no prior context.</p>
+        <p>Not to second-guess Claude. To see what stands out when there's no bias toward the original approach. "Here's a runbook. What's missing? What's ambiguous? What would a confused Tier 1 tech get stuck on?" Different framing, different surface area for problems.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout teal rv">
+    <div class="callout-tag">The Feedback Loop</div>
+    <p>Boris Cherny — the person who built Claude Code — said that giving Claude a real feedback loop produces 2–3x better output. In our environment that means: don't just review the output yourself. Build the check into the process. Lint the code. Hit the endpoint. Compare to the reference. Make the verification automatic where you can.</p>
+  </div>
+
+  <p class="rv">A spec and a verifier will carry you a long way — on one piece of work. But notice what they have in common: you rebuild both from scratch every session. The spec you wrote yesterday is gone. The pass criteria you sharpened last week are sitting in a closed chat. The third layer exists to fix exactly that.</p>
+
+</section>
+
+<!-- LAYER 3 -->
+<section class="zone" data-tint="tint3">
+
+  <div class="divider rv"><div class="divider-line"></div><div class="divider-label">Layer Three</div><div class="divider-line"></div></div>
+
+  <div class="layer-hd rv">
+    <div class="layer-pill pill-3">Layer 3</div>
+    <div>
+      <h2>Build the Workshop.<br>Not Just the Work.</h2>
+      <div class="sub">// environment_that_compounds()</div>
+    </div>
+  </div>
+
+  <p class="rv">Layers one and two help you get better results session by session. Layer three is about not starting from zero every time. Right now, most people open a new chat, dump in some context they're rebuilding from scratch, and call that their process. It works. It also means you're doing the same setup work indefinitely.</p>
+
+  <p class="rv">The persistent environment is what makes AI usage compound. Every bit of context you capture once and reuse is work you stop doing manually. Over a few months this gets significant.</p>
+
+  <h3 class="rv">CLAUDE.md — your standing brief</h3>
+
+  <p class="rv">If you use Claude Code on a project, a file called <code>CLAUDE.md</code> at the repo root gets read automatically on every single prompt. This is where you put the stuff you'd otherwise have to explain again and again: how the repo is structured, what naming conventions we use, what the client's environment looks like, what you never want Claude to touch.</p>
+
+  <p class="rv">For any active project I keep the whole context in there — how the system is structured, what the naming conventions are, what the client's environment looks like, which pieces need a conversation before anyone touches them. One file. Every session starts already knowing all of that. You stop re-explaining and start building.</p>
+
+  <h3 class="rv">Guardrails — built into the environment, not the prompt</h3>
+
+  <p class="rv">There's a difference between a rule and a request. Telling Claude "don't touch the auth flow" in a prompt is a request — it can still touch it if the reasoning feels compelling enough in context. Wiring a pre-tool-use hook that blocks writes to those files is a rule. The distinction matters when the cost of a mistake is high.</p>
+
+  <p class="rv">I think about this in three buckets. Assign everything in your project to one of them before you start any agentic work:</p>
+
+  <div class="gr-grid rv">
+    <div class="gr-col">
+      <div class="gr-hd g">✅ Always Do</div>
+      <div class="gr-row g">Follow existing naming conventions</div>
+      <div class="gr-row g">Comment new or modified logic</div>
+      <div class="gr-row g">Flag assumptions — never fill silently</div>
+      <div class="gr-row g">Checkpoint before continuing</div>
+    </div>
+    <div class="gr-col">
+      <div class="gr-hd y">⚠️ Ask First</div>
+      <div class="gr-row y">Delete or rename existing files</div>
+      <div class="gr-row y">Touch config or environment files</div>
+      <div class="gr-row y">Schema or architecture changes</div>
+      <div class="gr-row y">Any operation you can't easily undo</div>
+    </div>
+    <div class="gr-col">
+      <div class="gr-hd r">🚫 Never Do</div>
+      <div class="gr-row r">Touch protected folders</div>
+      <div class="gr-row r">Push to production unsupervised</div>
+      <div class="gr-row r">Modify auth or billing logic alone</div>
+      <div class="gr-row r">Invent context — ask instead</div>
+    </div>
+  </div>
+
+  <h3 class="rv">Skills — turn repeated work into reusable process</h3>
+
+  <p class="rv">Anything you find yourself rebuilding the same instructions for more than twice should become a skill file. Not an SOP in the traditional sense — more like a standing brief that tells Claude exactly how you do this specific type of work, in your shop, for your clients. Your runbook format. Your client email tone. The structure you use for incident reports.</p>
+
+  <p class="rv">The useful part isn't writing them once. It's that using them surfaces the gaps. Every time a skill produces something slightly off, that's a signal about something that wasn't precise enough in the instructions. Run it enough times and the skill gets sharp. The first version is never the final version.</p>
+
+  <div class="callout rv">
+    <div class="callout-tag">The Compound Effect</div>
+    <p>I've been building this out for a few months now. The ROI isn't dramatic in week one. But six months in, every new project starts with a richer context, better default behavior, and a shorter path from "I need this" to "it's done and correct." That gap keeps shrinking. That's the actual value.</p>
+  </div>
+
+</section>
+
+<section class="zone" id="tail" data-tint="">
+
+  <!-- ASSEMBLER TOOL -->
+  <div class="divider rv"><div class="divider-line"></div><div class="divider-label">Try It</div><div class="divider-line"></div></div>
+
+  <h2 class="rv" style="margin-top:0;">Build Your Own Spec Prompt</h2>
+  <p class="rv">Fill in the fields. Get a ready-to-paste prompt that applies all three layers at once. The output isn't a template — it's assembled from what you put in.</p>
+
+  <div class="asm rv" id="tool">
+    <div class="asm-hd">
+      <div>
+        <div class="asm-ttl">Spec Prompt Assembler</div>
+        <div style="font-size:13px;color:var(--text-muted);margin-top:3px;">Describe your project — get a Claude-ready prompt back</div>
+      </div>
+      <div class="asm-badge">interactive</div>
+    </div>
+    <div class="asm-body">
+      <div class="fg">
+        <div class="fl">What's the actual goal? (outcome, not task)</div>
+        <input type="text" class="fi" id="a-goal" placeholder="e.g. Give our client a clear picture of what broke and why — in language their office manager can read without calling us back">
+      </div>
+      <div class="fg">
+        <div class="fl">Who's reading this / using this output?</div>
+        <input type="text" class="fi" id="a-audience" placeholder="e.g. Non-technical client contact, or Tier 1 tech on call at 9pm">
+      </div>
+      <div class="fr">
+        <div class="fg">
+          <div class="fl">Your environment / stack</div>
+          <input type="text" class="fi" id="a-stack" placeholder="e.g. M365, Meraki, Azure, Intune">
+        </div>
+        <div class="fg">
+          <div class="fl">Type of work</div>
+          <select class="fs" id="a-type">
+            <option value="script">Script or automation</option>
+            <option value="doc">Client-facing document</option>
+            <option value="runbook">Runbook or SOP</option>
+            <option value="build">Feature or tool build</option>
+            <option value="debug">Troubleshooting / debug</option>
+            <option value="report">Internal report or summary</option>
+          </select>
+        </div>
+      </div>
+      <div class="fg">
+        <div class="fl">Hard limits — what must Claude never touch?</div>
+        <input type="text" class="fi" id="a-limits" placeholder="e.g. Don't modify auth flow, don't touch production, don't rename existing functions">
+      </div>
+      <div class="fg">
+        <div class="fl">How will you know it's correct? (be specific)</div>
+        <input type="text" class="fi" id="a-done" placeholder="e.g. A Tier 1 tech can follow it solo. No step requires prior knowledge. Matches our existing runbook format.">
+      </div>
+      <button class="asm-go" onclick="buildPrompt()">▶ Build My Spec Prompt</button>
+      <div class="out-block" id="out-blk">
+        <div class="out-lbl">Your prompt — paste directly into Claude</div>
+        <div class="out-pre" id="out-pre"></div>
+        <button class="cp-btn" id="cp-btn" onclick="copyIt()">⎘ Copy to clipboard</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHECKLIST -->
+  <div class="divider rv"><div class="divider-line"></div><div class="divider-label">Before You Start</div><div class="divider-line"></div></div>
+
+  <h2 class="rv" style="margin-top:0;">Project Startup Checklist</h2>
+  <p class="rv">Seven things. Five minutes. Prevents an hour of rework. Click to check off as you go.</p>
+
+  <div class="cl-prog rv" id="cl-prog"><span id="cc">0</span><span id="cl-rest"> / 7 done</span></div>
+
+  <ul class="cl rv">
+    <li onclick="chk(this)" tabindex="0" role="checkbox" aria-checked="false">
+      <div class="cb"><span class="ct">✓</span></div>
+      <div><strong>Goal, not task.</strong> Have Claude interview you first if needed. Don't let it start until you can both name the actual outcome.</div>
+    </li>
+    <li onclick="chk(this)" tabindex="0" role="checkbox" aria-checked="false">
+      <div class="cb"><span class="ct">✓</span></div>
+      <div><strong>Spec approved.</strong> Written down, reviewed by you. Not a vague brief — specific scope, deliverables, and out-of-scope list.</div>
+    </li>
+    <li onclick="chk(this)" tabindex="0" role="checkbox" aria-checked="false">
+      <div class="cb"><span class="ct">✓</span></div>
+      <div><strong>Done criteria set.</strong> You can tell a stranger what passing looks like. If not, the spec isn't ready.</div>
+    </li>
+    <li onclick="chk(this)" tabindex="0" role="checkbox" aria-checked="false">
+      <div class="cb"><span class="ct">✓</span></div>
+      <div><strong>Guardrails defined.</strong> Always / ask first / never — before any agentic work starts, not after something goes wrong.</div>
+    </li>
+    <li onclick="chk(this)" tabindex="0" role="checkbox" aria-checked="false">
+      <div class="cb"><span class="ct">✓</span></div>
+      <div><strong>Checkpoints agreed.</strong> Where will you review before continuing? If the answer is "at the end," start over.</div>
+    </li>
+    <li onclick="chk(this)" tabindex="0" role="checkbox" aria-checked="false">
+      <div class="cb"><span class="ct">✓</span></div>
+      <div><strong>Context in.</strong> Format examples, structural templates, relevant scope details — anything that replaces assumption with something concrete. Use judgment about what belongs in the conversation and what doesn't.</div>
+    </li>
+    <li onclick="chk(this)" tabindex="0" role="checkbox" aria-checked="false">
+      <div class="cb"><span class="ct">✓</span></div>
+      <div><strong>CLAUDE.md up to date.</strong> If this is a project repo, your standing context is already there. Don't rebuild it every session.</div>
+    </li>
+  </ul>
+
+  <div class="pq teal rv" style="margin-top:52px;">
+    <p>"The tool is only as good as what you bring to it. AI doesn't replace your understanding of the problem — it amplifies it. Which means if you don't understand the problem yet, you don't get a shortcut. You get a faster path to the wrong answer."</p>
+    <cite>— Aubrey Ballard · Devfuzion</cite>
+  </div>
+
+</section>
+
+</div><!-- /wrap -->
+
+<footer>
+  <div class="ft-series">Devfuzion AI Field Notes — Issue 001</div>
+  <div class="ft-next">Next up: Building the Environment</div>
+  <div class="ft-sub">CLAUDE.md setup, a real LLM knowledge base, and the skill library we actually use across client work.</div>
+  <div class="ft-tags">
+    <span class="ft-tag">ai-workflow</span>
+    <span class="ft-tag">prompt-engineering</span>
+    <span class="ft-tag">msp</span>
+    <span class="ft-tag">claude</span>
+    <span class="ft-tag">devfuzion</span>
+    <span class="ft-tag">systems-thinking</span>
+  </div>
+  <div class="ft-by">Written by Aubrey Ballard · <a href="#">devfuzion.com</a></div>
+</footer>
+
+<button id="fab" aria-label="Copy link to this article" onclick="copyLink()">⎘</button>
+<div id="fab-toast">link copied</div>
+
+<script>
+  const RM = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ── PROGRESS + READING TIME + NAV HIDE + FAB ── */
+  const rtEl = document.getElementById('rt');
+  const navEl = document.getElementById('nav');
+  const fabEl = document.getElementById('fab');
+  let lastY = 0;
+  window.addEventListener('scroll', () => {
+    const max = document.body.scrollHeight - window.innerHeight;
+    const p = max > 0 ? window.scrollY / max : 0;
+    document.getElementById('prog').style.width = (p * 100) + '%';
+
+    // live reading time
+    if (p < 0.02) rtEl.textContent = '~9 min';
+    else if (p > 0.96) rtEl.textContent = '✓ read';
+    else rtEl.textContent = '~' + Math.max(1, Math.ceil(9 * (1 - p))) + ' min left';
+
+    // nav hides on scroll down, returns on scroll up
+    const y = window.scrollY;
+    if (y > 320 && y > lastY + 4) navEl.classList.add('hide');
+    else if (y < lastY - 4 || y < 320) navEl.classList.remove('hide');
+    lastY = y;
+
+    // floating copy-link appears once you're actually reading
+    fabEl.classList.toggle('show', y > 900);
+  }, { passive: true });
+
+  function copyLink() {
+    navigator.clipboard.writeText(location.href).then(() => {
+      const t = document.getElementById('fab-toast');
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 1800);
+    });
+  }
+
+  /* ── STAGGERED REVEAL ── */
+  const obs = new IntersectionObserver(entries => {
+    const visible = entries.filter(e => e.isIntersecting);
+    visible.forEach((e, i) => {
+      const el = e.target;
+      el.style.transitionDelay = Math.min(i * 80, 320) + 'ms';
+      el.classList.add('in');
+      obs.unobserve(el);
+      setTimeout(() => { el.style.transitionDelay = ''; }, 1400);
+    });
+  }, { threshold: 0.08, rootMargin: '0px 0px -30px 0px' });
+  document.querySelectorAll('.rv').forEach(el => obs.observe(el));
+
+  /* ── ZONE TINTS — color temperature shifts per layer ── */
+  const tints = { tint1: document.getElementById('tint1'), tint2: document.getElementById('tint2'), tint3: document.getElementById('tint3') };
+  const zoneObs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      const want = e.target.dataset.tint;
+      Object.keys(tints).forEach(k => tints[k].classList.toggle('on', k === want));
+    });
+  }, { rootMargin: '-42% 0px -42% 0px', threshold: 0 });
+  document.querySelectorAll('.zone').forEach(z => zoneObs.observe(z));
+
+  /* ── HERO CANVAS — the context gap, animated ──
+     Left cluster: what's in your head. Right cluster: what the model gets.
+     Packets cross the gap. Most context never makes it. A spec does. */
+  (function () {
+    const cv = document.getElementById('hero-cv');
+    const ctx = cv.getContext('2d');
+    let W = 0, H = 0, nodes = [], packets = [], pulses = [];
+    let running = false, raf = null, last = 0, spawnT = 0, specT = 2500;
+    const mobile = window.innerWidth < 640;
+
+    function resize() {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      W = cv.clientWidth; H = cv.clientHeight;
+      cv.width = W * dpr; cv.height = H * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      seed();
+      if (RM) drawStatic();
+    }
+
+    function seed() {
+      nodes = []; packets = []; pulses = [];
+      const per = mobile ? 8 : 14;
+      const cy = H * 0.56;
+      const r = Math.min(W, H) * (mobile ? 0.20 : 0.17);
+      [{ cx: W * 0.24, side: 0 }, { cx: W * 0.76, side: 1 }].forEach(cl => {
+        for (let i = 0; i < per; i++) {
+          const a = Math.random() * Math.PI * 2;
+          const d = Math.sqrt(Math.random()) * r;
+          nodes.push({
+            ax: cl.cx + Math.cos(a) * d * 1.25,
+            ay: cy + Math.sin(a) * d * 0.85,
+            ph: Math.random() * Math.PI * 2,
+            ph2: Math.random() * Math.PI * 2,
+            sp: 0.25 + Math.random() * 0.45,
+            amp: 5 + Math.random() * 11,
+            side: cl.side,
+            s: 1.1 + Math.random() * 1.5,
+            x: 0, y: 0
+          });
+        }
+      });
+    }
+
+    function nodePos(n, t) {
+      n.x = n.ax + Math.cos(n.ph + t * 0.0004 * n.sp) * n.amp;
+      n.y = n.ay + Math.sin(n.ph2 + t * 0.00055 * n.sp) * n.amp * 0.8;
+    }
+
+    function spawnPacket(spec) {
+      const from = nodes.filter(n => n.side === 0);
+      const to = nodes.filter(n => n.side === 1);
+      if (!from.length || !to.length) return;
+      const a = from[Math.random() * from.length | 0];
+      const b = to[Math.random() * to.length | 0];
+      const drop = !spec && Math.random() < 0.62;
+      packets.push({
+        a, b, t: 0,
+        dur: spec ? 2600 : 1900 + Math.random() * 900,
+        drop,
+        dropAt: 0.38 + Math.random() * 0.26,
+        arc: (Math.random() - 0.5) * H * 0.22,
+        spec
+      });
+    }
+
+    function frame(now) {
+      if (!running) return;
+      const dt = Math.min(now - last, 50); last = now;
+
+      // spawn ordinary context packets + the occasional spec packet
+      spawnT += dt;
+      if (spawnT > (mobile ? 1300 : 850)) { spawnT = 0; spawnPacket(false); }
+      specT += dt;
+      if (specT > 6500) { specT = 0; spawnPacket(true); }
+
+      ctx.clearRect(0, 0, W, H);
+
+      // intra-cluster links
+      for (let i = 0; i < nodes.length; i++) nodePos(nodes[i], now);
+      const linkD = mobile ? 64 : 84;
+      for (let i = 0; i < nodes.length; i++) {
+        for (let j = i + 1; j < nodes.length; j++) {
+          const n = nodes[i], m = nodes[j];
+          if (n.side !== m.side) continue;
+          const dx = n.x - m.x, dy = n.y - m.y;
+          const d2 = dx * dx + dy * dy;
+          if (d2 < linkD * linkD) {
+            const al = (1 - Math.sqrt(d2) / linkD) * 0.22;
+            ctx.strokeStyle = n.side === 0
+              ? 'rgba(46,143,212,' + al + ')'
+              : 'rgba(20,184,166,' + al + ')';
+            ctx.lineWidth = 1;
+            ctx.beginPath(); ctx.moveTo(n.x, n.y); ctx.lineTo(m.x, m.y); ctx.stroke();
+          }
+        }
+      }
+
+      // nodes
+      nodes.forEach(n => {
+        ctx.fillStyle = n.side === 0 ? 'rgba(46,143,212,0.55)' : 'rgba(20,184,166,0.55)';
+        ctx.beginPath(); ctx.arc(n.x, n.y, n.s, 0, Math.PI * 2); ctx.fill();
+      });
+
+      // packets crossing the gap
+      for (let i = packets.length - 1; i >= 0; i--) {
+        const pk = packets[i];
+        pk.t += dt / pk.dur;
+        if (pk.t >= 1) {
+          if (!pk.drop) pulses.push({ x: pk.b.x, y: pk.b.y, r: 2, max: pk.spec ? 34 : 20, al: pk.spec ? 0.6 : 0.4, spec: pk.spec });
+          packets.splice(i, 1); continue;
+        }
+        if (pk.drop && pk.t > pk.dropAt + 0.14) { packets.splice(i, 1); continue; }
+
+        const t = pk.t;
+        const mx = (pk.a.x + pk.b.x) / 2;
+        const my = (pk.a.y + pk.b.y) / 2 + pk.arc;
+        const x = (1 - t) * (1 - t) * pk.a.x + 2 * (1 - t) * t * mx + t * t * pk.b.x;
+        const y = (1 - t) * (1 - t) * pk.a.y + 2 * (1 - t) * t * my + t * t * pk.b.y;
+
+        let al = 0.85, col = pk.spec ? '20,184,166' : '46,143,212', size = pk.spec ? 3 : 1.8;
+        if (pk.drop && t > pk.dropAt) {
+          const f = (t - pk.dropAt) / 0.14;
+          al = 0.85 * (1 - f);
+          col = '248,113,113';
+        }
+        if (pk.spec) {
+          ctx.shadowColor = 'rgba(20,184,166,0.8)';
+          ctx.shadowBlur = 12;
+        }
+        ctx.fillStyle = 'rgba(' + col + ',' + al + ')';
+        ctx.beginPath(); ctx.arc(x, y, size, 0, Math.PI * 2); ctx.fill();
+        ctx.shadowBlur = 0;
+        // faint trail
+        ctx.strokeStyle = 'rgba(' + col + ',' + (al * 0.18) + ')';
+        ctx.lineWidth = pk.spec ? 1.4 : 0.8;
+        const tt = Math.max(0, t - 0.07);
+        const tx = (1 - tt) * (1 - tt) * pk.a.x + 2 * (1 - tt) * tt * mx + tt * tt * pk.b.x;
+        const ty = (1 - tt) * (1 - tt) * pk.a.y + 2 * (1 - tt) * tt * my + tt * tt * pk.b.y;
+        ctx.beginPath(); ctx.moveTo(tx, ty); ctx.lineTo(x, y); ctx.stroke();
+      }
+
+      // delivery pulses
+      for (let i = pulses.length - 1; i >= 0; i--) {
+        const pl = pulses[i];
+        pl.r += dt * 0.03 * (pl.max / 20);
+        const al = pl.al * (1 - pl.r / pl.max);
+        if (al <= 0) { pulses.splice(i, 1); continue; }
+        ctx.strokeStyle = (pl.spec ? 'rgba(20,184,166,' : 'rgba(20,184,166,') + al + ')';
+        ctx.lineWidth = 1.2;
+        ctx.beginPath(); ctx.arc(pl.x, pl.y, pl.r, 0, Math.PI * 2); ctx.stroke();
+      }
+
+      labels();
+      raf = requestAnimationFrame(frame);
+    }
+
+    function labels() {
+      ctx.font = '500 10px "JetBrains Mono", monospace';
+      ctx.textAlign = 'center';
+      ctx.fillStyle = 'rgba(122,146,168,0.42)';
+      const ly = H * 0.56 + Math.min(W, H) * (mobile ? 0.20 : 0.17) + 26;
+      ctx.fillText("WHAT'S IN YOUR HEAD", W * 0.24, Math.min(ly, H - 14));
+      ctx.fillText('WHAT THE MODEL GETS', W * 0.76, Math.min(ly, H - 14));
+    }
+
+    function drawStatic() {
+      ctx.clearRect(0, 0, W, H);
+      nodes.forEach(n => { n.x = n.ax; n.y = n.ay; });
+      nodes.forEach(n => {
+        ctx.fillStyle = n.side === 0 ? 'rgba(46,143,212,0.5)' : 'rgba(20,184,166,0.5)';
+        ctx.beginPath(); ctx.arc(n.x, n.y, n.s, 0, Math.PI * 2); ctx.fill();
+      });
+      labels();
+    }
+
+    window.addEventListener('resize', resize);
+    resize();
+
+    if (!RM) {
+      const heroObs = new IntersectionObserver(es => {
+        es.forEach(e => {
+          if (e.isIntersecting && !running) {
+            running = true; last = performance.now();
+            raf = requestAnimationFrame(frame);
+          } else if (!e.isIntersecting && running) {
+            running = false; cancelAnimationFrame(raf);
+          }
+        });
+      }, { threshold: 0.05 });
+      heroObs.observe(document.querySelector('.hero'));
+    }
+  })();
+
+  /* ── TERMINAL TYPEWRITER ── */
+  (function () {
+    const SEG = [
+      ['t-p', 'prompt v1 → '], ['t-c', '"summarize this ticket for the client"'], ['', '\n'],
+      ['t-e', 'result    → '], ['t-o', 'technical jargon, root cause breakdown, internal notes\n            about what we tried that didn\'t work'], ['', '\n'],
+      ['t-e', 'problem   → '], ['t-o', 'client is a non-technical office manager. she doesn\'t\n            need the forensics. she needs to know it\'s fixed.'], ['', '\n'],
+      ['', '\n'],
+      ['t-p', 'prompt v2 → '], ['t-c', '"summarize for a non-technical office manager.\n             focus on what was recovered and what we changed.\n             skip the how. end with what they should expect now."'], ['', '\n'],
+      ['t-s', 'result    → '], ['t-o', 'actually useful. sent directly.']
+    ];
+    const body = document.getElementById('term-body');
+    const cur = document.getElementById('term-cur');
+    let played = false;
+
+    function renderInstant() {
+      SEG.forEach(([cls, txt]) => {
+        const sp = document.createElement('span');
+        if (cls) sp.className = cls;
+        sp.textContent = txt;
+        body.insertBefore(sp, cur);
+      });
+    }
+
+    function play() {
+      if (played) return; played = true;
+      if (RM) { renderInstant(); return; }
+      let si = 0, ci = 0, span = null;
+      function step() {
+        if (si >= SEG.length) return;
+        const [cls, txt] = SEG[si];
+        if (!span) {
+          span = document.createElement('span');
+          if (cls) span.className = cls;
+          body.insertBefore(span, cur);
+          // label/prefix segments land instantly — only "typed" content animates
+          if (cls === 't-p' || cls === 't-e' || cls === 't-s' || txt === '\n') {
+            span.textContent = txt;
+            si++; ci = 0; span = null;
+            setTimeout(step, txt === '\n' ? 170 : 60);
+            return;
+          }
+        }
+        const ch = txt[ci];
+        span.textContent += ch;
+        ci++;
+        if (ci >= txt.length) { si++; ci = 0; span = null; }
+        setTimeout(step, ch === '\n' ? 200 : 5 + Math.random() * 9);
+      }
+      step();
+    }
+
+    const termObs = new IntersectionObserver(es => {
+      es.forEach(e => {
+        if (e.isIntersecting) { play(); termObs.disconnect(); }
+      });
+    }, { threshold: 0.35 });
+    termObs.observe(document.getElementById('term'));
+  })();
+
+  /* ── COMPARE TOGGLE ── */
+  function swapCmp(id, side) {
+    const block = document.querySelector('[data-cid="' + id + '"]');
+    block.querySelectorAll('.cmp-panel').forEach(p => p.classList.remove('show'));
+    block.querySelectorAll('.cmp-tab').forEach(t => { t.className = 'cmp-tab'; });
+    document.getElementById('c' + id + '-' + side).classList.add('show');
+    const tabs = block.querySelectorAll('.cmp-tab');
+    if (side === 'bad') tabs[0].classList.add('a-bad');
+    else tabs[1].classList.add('a-good');
+  }
+
+  /* ── CARD ACCORDION ── */
+  function tog(card) {
+    const wasOpen = card.classList.contains('open');
+    document.querySelectorAll('.card.open').forEach(c => {
+      c.classList.remove('open');
+      c.setAttribute('aria-expanded', 'false');
+    });
+    if (!wasOpen) {
+      card.classList.add('open');
+      card.setAttribute('aria-expanded', 'true');
+    }
+  }
+
+  /* ── CHECKLIST ── */
+  function chk(li) {
+    li.classList.toggle('chk');
+    li.setAttribute('aria-checked', li.classList.contains('chk') ? 'true' : 'false');
+    const n = document.querySelectorAll('.cl li.chk').length;
+    document.getElementById('cc').textContent = n;
+    const prog = document.getElementById('cl-prog');
+    prog.classList.toggle('full', n === 7);
+    document.getElementById('cl-rest').textContent = n === 7 ? ' / 7 — clear to start' : ' / 7 done';
+  }
+
+  /* keyboard support for cards + checklist */
+  document.querySelectorAll('.card, .cl li').forEach(el => {
+    el.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); el.click(); }
+    });
+  });
+
+  /* ── PROMPT ASSEMBLER ── */
+  let outFull = '';
+
+  function buildPrompt() {
+    const goal     = document.getElementById('a-goal').value.trim();
+    const audience = document.getElementById('a-audience').value.trim();
+    const stack    = document.getElementById('a-stack').value.trim();
+    const type     = document.getElementById('a-type').value;
+    const limits   = document.getElementById('a-limits').value.trim();
+    const done     = document.getElementById('a-done').value.trim();
+
+    const typeMap = {
+      script: 'script or automation',
+      doc: 'client-facing document',
+      runbook: 'runbook or SOP',
+      build: 'feature or tool',
+      debug: 'troubleshooting investigation',
+      report: 'internal report or summary',
+    };
+
+    let p = '';
+
+    p += `Before you start anything, I want us to work through a spec together.\n\n`;
+
+    p += `GOAL\n`;
+    p += goal
+      ? `The outcome I'm after (not just the task): ${goal}\n\n`
+      : `[Ask me one question at a time to surface the actual goal. Don't start until we've named it.]\n\n`;
+
+    if (audience) p += `AUDIENCE\n${audience}\n\n`;
+
+    p += `TYPE OF WORK\nThis is a ${typeMap[type]}.\n\n`;
+
+    if (stack) p += `ENVIRONMENT\n${stack}\n\n`;
+
+    p += `HOW WE WORK TOGETHER\n`;
+    p += `- Break this into stages. Don't deliver everything at the end.\n`;
+    p += `- After each stage: summarize what's done, confirm what's next, then wait.\n`;
+    p += `- If the spec needs to change mid-way, tell me before deviating from it.\n`;
+    p += `- Do not fill in context-driven gaps with assumptions. Ask me.\n\n`;
+
+    if (limits) p += `HARD LIMITS\nDo not touch: ${limits}\n\n`;
+
+    p += `HOW I'LL KNOW IT'S CORRECT\n`;
+    p += done
+      ? `${done}\n\n`
+      : `[Define your pass criteria here before sending.]\n\n`;
+
+    p += `BEFORE YOU START\n`;
+    p += `Write out the spec: goal, scope, what's out of scope, deliverables, checkpoints.\n`;
+    p += `List every assumption you're making. Do not begin work until I approve it.`;
+
+    outFull = p;
+
+    // render line-by-line, as if the prompt is being written
+    const pre = document.getElementById('out-pre');
+    pre.textContent = '';
+    const lines = p.split('\n');
+    lines.forEach((ln, i) => {
+      const div = document.createElement('span');
+      div.className = 'ol';
+      div.textContent = ln === '' ? '\u00a0' : ln;
+      div.style.animationDelay = (RM ? 0 : Math.min(i * 45, 1400)) + 'ms';
+      pre.appendChild(div);
+    });
+
+    const ob = document.getElementById('out-blk');
+    ob.classList.add('show');
+    ob.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    const btn = document.getElementById('cp-btn');
+    btn.textContent = '⎘ Copy to clipboard';
+    btn.className = 'cp-btn';
+  }
+
+  function copyIt() {
+    navigator.clipboard.writeText(outFull).then(() => {
+      const b = document.getElementById('cp-btn');
+      b.textContent = '✓ Copied';
+      b.className = 'cp-btn done';
+      setTimeout(() => { b.textContent = '⎘ Copy to clipboard'; b.className = 'cp-btn'; }, 2000);
+    });
+  }
+</script>
+</body>
+</html>
