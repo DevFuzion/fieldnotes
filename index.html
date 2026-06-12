@@ -11,122 +11,165 @@
 <meta property="og:url" content="https://fieldnotes.devfuzion.com/">
 <meta property="og:image" content="https://fieldnotes.devfuzion.com/assets/og-001.png">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230B1120'/%3E%3Ccircle cx='9' cy='16' r='3.4' fill='%232E8FD4'/%3E%3Ccircle cx='23' cy='16' r='3.4' fill='%2314B8A6'/%3E%3Cline x1='12.4' y1='16' x2='19.6' y2='16' stroke='%2314B8A6' stroke-width='1.6' stroke-dasharray='2 2.4'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='5' fill='%230D0D0F'/%3E%3Crect x='6' y='9' width='20' height='5' fill='%2361D8FF'/%3E%3Crect x='6' y='18' width='13' height='5' fill='%232A2A31'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,600;12..96,800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
-    --base: #0B1120; --surface: #111827; --navy: #1E3A5F;
-    --blue: #2E8FD4; --teal: #14B8A6;
-    --text: #E8EDF2; --text-muted: #7A92A8; --text-dim: #4a6070;
+    --ink: #0D0D0F; --ink2: #161619;
+    --bone: #EDEAE3; --bone-dim: #9b978e; --bone-dark: #6b675f;
+    --sig: #61D8FF; --warm: #FF5A48; --ghost: #2A2A31;
     --mono: 'JetBrains Mono', monospace;
-    --body: 'Inter', sans-serif;
-    --display: 'Syne', sans-serif;
+    --disp: 'Anton', sans-serif;
+    --grot: 'Bricolage Grotesque', sans-serif;
   }
   body {
-    background: var(--base); color: var(--text);
-    font-family: var(--body); font-size: 16px; line-height: 1.7;
-    min-height: 100vh;
+    background: var(--ink); color: var(--bone);
+    font-family: var(--grot); font-weight: 300;
+    font-size: 16px; line-height: 1.7; min-height: 100vh;
+    overflow-x: hidden;
   }
-  body::before {
-    content: ''; position: fixed; inset: 0; pointer-events: none;
-    background: radial-gradient(ellipse 110% 60% at 50% 0%, rgba(46,143,212,0.07), transparent 70%);
+  ::selection { background: var(--sig); color: var(--ink); }
+  :focus-visible { outline: 2px solid var(--sig); outline-offset: 2px; }
+  body::after {
+    content: ''; position: fixed; inset: -50%;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+    opacity: 0.045; pointer-events: none; z-index: 999;
+    animation: grain 0.7s steps(3) infinite;
   }
-  :focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; border-radius: 3px; }
+  @keyframes grain {
+    0% { transform: translate(0,0); } 33% { transform: translate(-2%,1%); } 66% { transform: translate(1%,-2%); }
+  }
 
-  .wrap { max-width: 720px; margin: 0 auto; padding: 90px 24px 80px; position: relative; }
-
-  .kicker {
-    font-family: var(--mono); font-size: 12px;
-    color: var(--teal); letter-spacing: 0.18em;
-    text-transform: uppercase; margin-bottom: 20px;
-    display: flex; align-items: center; gap: 12px;
+  .ticker {
+    background: var(--sig); color: var(--ink);
+    font-family: var(--mono); font-size: 12px; font-weight: 700;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    padding: 8px 0; overflow: hidden; white-space: nowrap;
   }
-  .kicker::after { content: ''; flex: 1; height: 1px; background: rgba(20,184,166,0.25); }
+  .ticker-track { display: inline-block; animation: mq 26s linear infinite; }
+  .ticker span { margin: 0 18px; }
+  @keyframes mq { to { transform: translateX(-50%); } }
+
+  .wrap { max-width: 880px; margin: 0 auto; padding: 64px 5vw 70px; position: relative; }
+
+  .rail {
+    position: absolute; top: 68px; right: 4vw;
+    writing-mode: vertical-rl;
+    font-family: var(--mono); font-size: 11px;
+    letter-spacing: 0.3em; color: var(--bone-dim); text-transform: uppercase;
+  }
+  .rail b { color: var(--sig); font-weight: 500; }
 
   h1 {
-    font-family: var(--display); font-weight: 800;
-    font-size: clamp(34px, 6vw, 52px); line-height: 1.08;
-    letter-spacing: -0.02em; margin-bottom: 18px;
+    font-family: var(--disp); font-weight: 400; text-transform: uppercase;
+    font-size: clamp(44px, 9.5vw, 96px);
+    line-height: 0.94; letter-spacing: 0.005em; margin-left: -0.04em;
   }
-  h1 em {
-    font-style: normal;
-    background: linear-gradient(120deg, var(--blue), var(--teal));
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    background-clip: text;
+  h1 .hollow { color: transparent; -webkit-text-stroke: 2px var(--bone); }
+  h1 .sig { color: var(--sig); }
+  .deckline { display: flex; flex-wrap: wrap; gap: 22px; margin-top: 34px; align-items: flex-start; }
+  .deckrule { flex-shrink: 0; width: 72px; height: 5px; background: var(--sig); margin-top: 11px; }
+  .deck { max-width: 440px; color: var(--bone-dim); }
+  .deck b { color: var(--bone); font-weight: 600; }
+  .by {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--bone-dark); margin-top: 16px;
   }
-  .deck {
-    color: var(--text-muted); font-weight: 300;
-    max-width: 480px; margin-bottom: 14px;
-  }
-  .by { font-size: 13px; color: var(--text-dim); margin-bottom: 56px; }
-  .by strong { color: var(--text-muted); font-weight: 500; }
+  .by b { color: var(--bone-dim); font-weight: 500; }
 
   .sec-label {
-    font-family: var(--mono); font-size: 11px;
-    color: var(--text-dim); letter-spacing: 0.15em;
-    text-transform: uppercase; margin-bottom: 16px;
+    font-family: var(--mono); font-size: 11px; font-weight: 700;
+    letter-spacing: 0.25em; color: var(--sig); text-transform: uppercase;
+    margin: 64px 0 18px;
   }
 
-  .issues { display: flex; flex-direction: column; gap: 12px; }
+  .issues { display: flex; flex-direction: column; gap: 14px; max-width: 760px; }
   .issue {
-    display: flex; align-items: flex-start; gap: 18px;
-    padding: 22px 24px; border-radius: 10px;
-    background: var(--surface); border: 1px solid rgba(255,255,255,0.06);
+    display: flex; align-items: flex-start; gap: 20px;
+    padding: 22px 24px; position: relative;
+    background: var(--ink2); border: 1px solid var(--ghost);
     text-decoration: none; color: inherit;
     transition: border-color 0.2s, transform 0.2s;
   }
-  a.issue:hover { border-color: rgba(20,184,166,0.35); transform: translateY(-2px); }
+  a.issue { transform: rotate(-0.35deg); }
+  a.issue:hover { border-color: var(--sig); transform: rotate(0deg) translateY(-2px); }
   .issue-num {
-    font-family: var(--mono); font-size: 13px; font-weight: 500;
-    color: var(--teal); letter-spacing: 0.06em;
-    padding-top: 4px; flex-shrink: 0;
+    font-family: var(--disp); font-size: 34px; line-height: 1;
+    color: transparent; -webkit-text-stroke: 1.5px var(--bone-dark);
+    flex-shrink: 0; transition: -webkit-text-stroke-color 0.2s;
   }
+  a.issue:hover .issue-num { -webkit-text-stroke-color: var(--sig); }
   .issue-ttl {
-    font-family: var(--display); font-weight: 700;
-    font-size: 19px; line-height: 1.25; letter-spacing: -0.01em;
-    margin-bottom: 6px; color: var(--text);
+    font-weight: 800; font-size: 18px; line-height: 1.3;
+    letter-spacing: 0.02em; text-transform: uppercase;
+    color: var(--bone); margin-bottom: 6px;
   }
-  .issue-desc { font-size: 14px; color: var(--text-muted); font-weight: 300; margin-bottom: 10px; }
+  .issue-desc { font-size: 14px; color: var(--bone-dim); margin-bottom: 10px; }
   .issue-meta {
-    font-family: var(--mono); font-size: 11.5px;
-    color: var(--text-dim); letter-spacing: 0.05em;
+    font-family: var(--mono); font-size: 11px; font-weight: 500;
+    color: var(--bone-dark); letter-spacing: 0.08em; text-transform: uppercase;
     display: flex; flex-wrap: wrap; gap: 14px;
   }
-  .issue-meta .live { color: var(--teal); }
+  .issue-meta .live { color: var(--sig); }
   .issue-arrow {
     margin-left: auto; align-self: center; flex-shrink: 0;
-    color: var(--text-dim); font-size: 16px; transition: color 0.2s, transform 0.2s;
+    color: var(--bone-dark); font-family: var(--mono); font-size: 16px;
+    transition: color 0.2s, transform 0.2s;
   }
-  a.issue:hover .issue-arrow { color: var(--teal); transform: translateX(3px); }
-
-  .issue.soon { opacity: 0.55; cursor: default; }
-  .issue.soon .issue-num { color: var(--text-dim); }
-  .issue.soon .issue-meta .live { color: var(--text-dim); }
+  a.issue:hover .issue-arrow { color: var(--sig); transform: translateX(3px); }
+  .issue.soon { opacity: 0.5; cursor: default; transform: rotate(0.3deg); }
+  .issue.soon .issue-meta .live { color: var(--bone-dark); }
 
   footer {
-    margin-top: 72px; padding-top: 28px;
-    border-top: 1px solid rgba(255,255,255,0.05);
-    font-size: 13px; color: var(--text-dim);
-    display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px;
+    border-top: 1px solid var(--ghost); margin-top: 80px;
+    padding: 24px 5vw; display: flex; flex-wrap: wrap;
+    justify-content: space-between; gap: 12px;
+    font-family: var(--mono); font-size: 11px; font-weight: 500;
+    letter-spacing: 0.14em; text-transform: uppercase; color: var(--bone-dim);
   }
-  footer a { color: var(--blue); text-decoration: none; }
+  footer a { color: var(--bone-dim); text-decoration: none; transition: color 0.2s; }
+  footer a:hover { color: var(--sig); }
+  footer b { color: var(--sig); font-weight: 500; }
 
-  @media (max-width: 540px) {
-    .wrap { padding-top: 64px; }
-    .issue { flex-direction: column; gap: 8px; padding: 18px; }
+  @media (max-width: 600px) {
+    .rail { display: none; }
+    .issue { flex-direction: column; gap: 10px; padding: 18px; }
     .issue-arrow { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    body::after, .ticker-track { animation: none; }
   }
 </style>
 </head>
 <body>
+
+<div class="ticker" aria-hidden="true">
+  <div class="ticker-track">
+    <span>Devfuzion // AI Field Notes</span><span>·</span>
+    <span>signal &gt; noise</span><span>·</span>
+    <span>written from the queue, not the keynote</span><span>·</span>
+    <span>Devfuzion // AI Field Notes</span><span>·</span>
+    <span>signal &gt; noise</span><span>·</span>
+    <span>written from the queue, not the keynote</span><span>·</span>
+  </div>
+</div>
+
 <div class="wrap">
 
-  <div class="kicker">Devfuzion / AI Field Notes</div>
-  <h1>Notes from making AI <em>actually work</em> at an MSP.</h1>
-  <p class="deck">No thought leadership. No hype. Just what holds up when the stack is M365, Meraki, and Azure — and the clients aren't patient.</p>
-  <p class="by">Written by <strong>Aubrey Ballard</strong> · Sr. Systems Analyst, Devfuzion</p>
+  <div class="rail">Devfuzion <b>//</b> est. from the ticket queue</div>
+
+  <h1>
+    AI Field<br>
+    <span class="hollow">Notes</span> <span class="sig">//</span>
+  </h1>
+
+  <div class="deckline">
+    <div class="deckrule"></div>
+    <p class="deck">Notes from making AI actually work at an MSP. <b>No thought leadership. No hype.</b> Just what holds up when the stack is M365, Meraki, and Azure — and the clients aren't patient.</p>
+  </div>
+  <p class="by">Written by <b>Aubrey Ballard</b> · Sr. Systems Analyst, Devfuzion</p>
 
   <div class="sec-label">All Issues</div>
   <div class="issues">
@@ -160,11 +203,13 @@
 
   </div>
 
-  <footer>
-    <span>Devfuzion AI Field Notes</span>
-    <span><a href="https://devfuzion.com">devfuzion.com</a></span>
-  </footer>
-
 </div>
+
+<footer>
+  <span>Devfuzion AI Field Notes</span>
+  <span>signal <b>&gt;</b> noise</span>
+  <span><a href="https://devfuzion.com">devfuzion.com</a></span>
+</footer>
+
 </body>
 </html>
