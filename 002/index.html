@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Stop starting from zero. How to build an AI environment that compounds — CLAUDE.md, a knowledge base, and reusable skills. Devfuzion AI Field Notes, Issue 002.">
+<!-- SOCIAL CARDS — if you skip the custom domain, find-replace
+     https://fieldnotes.devfuzion.com with your real Pages URL -->
+<meta property="og:type" content="article">
+<meta property="og:title" content="Stop Starting From Zero.">
+<meta property="og:description" content="Build the workshop, not just the work. CLAUDE.md, a knowledge base, and the skill library that makes AI compound. Issue 002 of Devfuzion AI Field Notes.">
+<meta property="og:url" content="https://fieldnotes.devfuzion.com/002/">
+<meta property="og:image" content="https://fieldnotes.devfuzion.com/assets/og-002.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:site_name" content="Devfuzion AI Field Notes">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Stop Starting From Zero.">
+<meta name="twitter:description" content="The environment that compounds: CLAUDE.md, a knowledge base, and reusable skills. Build the workshop, not just the work.">
+<meta name="twitter:image" content="https://fieldnotes.devfuzion.com/assets/og-002.png">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='5' fill='%230D0D0F'/%3E%3Crect x='6' y='9' width='20' height='5' fill='%2361D8FF'/%3E%3Crect x='6' y='18' width='13' height='5' fill='%232A2A31'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,600;12..96,800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --ink: #0D0D0F; --ink2: #161619;
+    --bone: #EDEAE3; --bone-dim: #9b978e; --bone-dark: #6b675f;
+    --sig: #61D8FF; --warm: #FF5A48; --ghost: #2A2A31;
+    --mono: 'JetBrains Mono', monospace;
+    --disp: 'Anton', sans-serif;
+    --grot: 'Bricolage Grotesque', sans-serif;
+  }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--ink); color: var(--bone);
+    font-family: var(--grot); font-weight: 300;
+    font-size: 17px; line-height: 1.75; overflow-x: hidden;
+  }
+  ::selection { background: var(--sig); color: var(--ink); }
+  :focus-visible { outline: 2px solid var(--sig); outline-offset: 2px; }
+  body::after {
+    content: ''; position: fixed; inset: -50%;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+    opacity: 0.045; pointer-events: none; z-index: 999;
+    animation: grain 0.7s steps(3) infinite;
+  }
+  @keyframes grain { 0%{transform:translate(0,0)} 33%{transform:translate(-2%,1%)} 66%{transform:translate(1%,-2%)} }
+
+  #prog { position: fixed; top: 0; left: 0; height: 3px; background: var(--sig); width: 0; z-index: 300; }
+
+  .ticker {
+    background: var(--sig); color: var(--ink);
+    font-family: var(--mono); font-size: 12px; font-weight: 700;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    padding: 8px 0; overflow: hidden; white-space: nowrap;
+  }
+  .ticker-track { display: inline-block; animation: mq 26s linear infinite; }
+  .ticker span { margin: 0 18px; }
+  .ticker b { color: var(--ink); font-weight: 700; }
+  @keyframes mq { to { transform: translateX(-50%); } }
+
+  .bar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+    background: var(--ink); border-bottom: 1px solid var(--ghost);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 5vw;
+    font-family: var(--mono); font-size: 11px; font-weight: 500;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    transform: translateY(-101%); transition: transform 0.3s ease;
+  }
+  .bar.show { transform: none; }
+  .bar a { color: var(--bone-dim); text-decoration: none; transition: color 0.2s; }
+  .bar a:hover { color: var(--sig); }
+  .bar .brand { color: var(--bone); }
+  .bar .brand b { color: var(--sig); font-weight: 700; }
+
+  .hero { position: relative; padding: 60px 5vw 70px; border-bottom: 1px solid var(--ghost); overflow: hidden; }
+  .rail {
+    position: absolute; top: 64px; right: 4vw; writing-mode: vertical-rl;
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.3em;
+    color: var(--bone-dim); text-transform: uppercase;
+  }
+  .rail b { color: var(--sig); font-weight: 500; }
+  h1 {
+    font-family: var(--disp); font-weight: 400; text-transform: uppercase;
+    font-size: clamp(50px, 12.5vw, 142px); line-height: 0.92; margin-left: -0.04em;
+  }
+  h1 .row { display: block; position: relative; opacity: 0; transform: translateY(0.25em); animation: rise 0.7s cubic-bezier(0.2,0.7,0.3,1) forwards; }
+  h1 .row:nth-child(1) { animation-delay: 0.08s; }
+  h1 .row:nth-child(2) { animation-delay: 0.2s; }
+  h1 .row:nth-child(3) { animation-delay: 0.32s; }
+  @keyframes rise { to { opacity: 1; transform: none; } }
+  h1 .hollow { color: transparent; -webkit-text-stroke: 2px var(--bone); }
+  h1 .down { color: var(--sig); display: inline-block; transform: translateY(0.07em) rotate(-1.2deg); }
+  h1 .row:last-child::before {
+    content: 'ZERO.'; position: absolute; left: -0.02em; top: 0.12em;
+    color: transparent; -webkit-text-stroke: 1px var(--warm);
+    opacity: 0.32; z-index: -1;
+  }
+  h1:hover .down { animation: jolt 0.3s steps(2) infinite; }
+  @keyframes jolt {
+    0% { transform: translate(0.02em, 0.05em) rotate(-1.2deg); }
+    50% { transform: translate(-0.02em, 0.08em) rotate(-0.8deg); }
+  }
+  .why {
+    display: inline-block; background: var(--sig); color: var(--ink);
+    font-family: var(--disp); text-transform: uppercase;
+    font-size: clamp(22px, 4.4vw, 44px); line-height: 1;
+    padding: 8px 16px 10px; margin-top: 22px; transform: rotate(-0.8deg);
+    opacity: 0; animation: rise 0.6s ease 0.5s forwards;
+  }
+  .deckline { display: flex; flex-wrap: wrap; gap: 24px; margin-top: 42px; align-items: flex-start; opacity: 0; animation: rise 0.6s ease 0.64s forwards; }
+  .deckrule { flex-shrink: 0; width: 88px; height: 5px; background: var(--sig); margin-top: 12px; }
+  .deck { max-width: 470px; font-size: 17px; color: var(--bone-dim); }
+  .deck b { color: var(--bone); font-weight: 600; }
+  .meta {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em;
+    color: var(--bone-dim); text-transform: uppercase; margin-top: 20px;
+    opacity: 0; animation: rise 0.6s ease 0.76s forwards;
+  }
+  .meta b { color: var(--bone); font-weight: 500; }
+  .meta #rt { color: var(--sig); font-variant-numeric: tabular-nums; }
+
+  .wrap { max-width: 880px; margin: 0 auto; padding: 0 5vw; }
+  p { margin-bottom: 22px; color: #CFCBC3; max-width: 640px; }
+  p strong { color: var(--bone); font-weight: 600; }
+  p em { color: var(--sig); font-style: normal; }
+  code {
+    font-family: var(--mono); font-size: 13px;
+    background: var(--ink2); border: 1px solid var(--ghost);
+    padding: 2px 7px; color: var(--sig);
+  }
+
+  .sec { position: relative; padding: 84px 0 8px; }
+  .secnum {
+    font-family: var(--disp); font-size: clamp(110px, 20vw, 240px);
+    line-height: 0.8; color: transparent;
+    -webkit-text-stroke: 1.5px var(--ghost);
+    position: absolute; top: 36px; right: -1vw;
+    user-select: none; z-index: 0; pointer-events: none;
+  }
+  .plate {
+    display: inline-block; background: var(--sig); color: var(--ink);
+    font-family: var(--disp); text-transform: uppercase; font-weight: 400;
+    font-size: clamp(27px, 5.4vw, 52px); line-height: 1.06;
+    padding: 10px 20px 12px; max-width: 640px;
+    transform: rotate(-0.6deg); position: relative; z-index: 1;
+  }
+  .fn { font-family: var(--mono); font-size: 12px; color: var(--bone-dim); letter-spacing: 0.08em; margin: 18px 0 30px; max-width: none; }
+  h3 {
+    font-family: var(--grot); font-weight: 800;
+    font-size: 19px; letter-spacing: 0.04em; text-transform: uppercase;
+    color: var(--bone); margin: 46px 0 14px;
+  }
+  h3::before { content: '// '; color: var(--sig); }
+  .kit-tag {
+    font-family: var(--mono); font-size: 11px; font-weight: 700;
+    letter-spacing: 0.25em; color: var(--sig); text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+
+  .pq { margin: 48px 0; max-width: 680px; border-left: 5px solid var(--sig); padding-left: 26px; }
+  .pq p { font-weight: 700; font-size: clamp(20px, 3vw, 26px); line-height: 1.45; color: var(--bone); margin-bottom: 12px; max-width: none; }
+  .pq cite { font-family: var(--mono); font-size: 12px; color: var(--bone-dim); font-style: normal; letter-spacing: 0.07em; }
+
+  .callout { border: 1px solid var(--ghost); background: var(--ink2); padding: 22px 24px 20px; margin: 36px 0; max-width: 660px; position: relative; }
+  .callout-tag {
+    position: absolute; top: -10px; left: 16px;
+    background: var(--sig); color: var(--ink);
+    font-family: var(--mono); font-size: 10px; font-weight: 700;
+    letter-spacing: 0.2em; text-transform: uppercase; padding: 2px 10px;
+  }
+  .callout p { margin: 6px 0 0; font-size: 15px; max-width: none; }
+  .dl {
+    font-family: var(--mono); font-size: 11px; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--sig); text-decoration: none;
+    border: 1px solid var(--ghost); padding: 8px 14px;
+    transition: background 0.2s, color 0.2s, border-color 0.2s;
+  }
+  .dl:hover { background: var(--sig); color: var(--ink); border-color: var(--sig); }
+
+  /* ── EXHIBIT 2: the build-up — CLAUDE.md assembling block by block ── */
+  .build {
+    padding: 56px 0; margin: 56px 0;
+    border-top: 1px solid var(--ghost); border-bottom: 1px solid var(--ghost);
+    position: relative;
+  }
+  .build-tag {
+    position: absolute; top: -11px; left: 0; background: var(--ink); padding-right: 14px;
+    font-family: var(--mono); font-size: 11px; font-weight: 700;
+    letter-spacing: 0.25em; color: var(--sig); text-transform: uppercase;
+  }
+  .build-lead { font-family: var(--mono); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--bone); margin-bottom: 14px; }
+  .file {
+    border: 1px solid var(--ghost); background: var(--ink2); max-width: 740px;
+    font-family: var(--mono); font-size: 13px; line-height: 1.7;
+  }
+  .file-bar {
+    border-bottom: 1px solid var(--ghost); padding: 9px 16px;
+    display: flex; align-items: center; justify-content: space-between;
+    color: var(--bone-dim); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
+  }
+  .file-bar .fn-name { color: var(--sig); }
+  .file-body { padding: 4px 0; }
+  .blk {
+    padding: 10px 18px; border-left: 2px solid transparent;
+    opacity: 0.32; transition: opacity 0.4s ease, border-color 0.4s ease, background 0.4s ease;
+  }
+  .blk.lit { opacity: 1; border-left-color: var(--sig); background: rgba(97,216,255,0.04); }
+  .blk .h { color: var(--bone); display: block; margin-bottom: 2px; }
+  .blk .h::before { content: '## '; color: var(--sig); }
+  .blk .c { color: var(--bone-dim); display: block; white-space: pre-wrap; }
+  .build-cap { font-family: var(--mono); font-size: 12px; color: var(--bone-dim); margin: 22px 0 0; max-width: 560px; }
+  .build-cap b { color: var(--sig); }
+
+  /* ── ANATOMY ROWS ── */
+  .anat { margin: 30px 0; max-width: 720px; border: 1px solid var(--ghost); }
+  .anat-row { display: grid; grid-template-columns: 200px 1fr; gap: 0; border-top: 1px solid var(--ghost); }
+  .anat-row:first-child { border-top: none; }
+  .anat-k { padding: 14px 16px; font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--sig); letter-spacing: 0.06em; text-transform: uppercase; border-right: 1px solid var(--ghost); background: rgba(97,216,255,0.03); }
+  .anat-v { padding: 14px 16px; font-size: 14px; line-height: 1.6; color: #CFCBC3; }
+
+  /* ── GUARDRAILS ── */
+  .gr-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin: 32px 0; max-width: 760px; }
+  .gr-col { border: 1px solid var(--ghost); }
+  .gr-hd { padding: 11px 12px; text-align: center; font-family: var(--mono); font-size: 11px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; }
+  .gr-hd.g { background: var(--sig); color: var(--ink); }
+  .gr-hd.y { background: var(--ink2); color: var(--bone); border-bottom: 1px solid var(--ghost); }
+  .gr-hd.r { background: var(--warm); color: var(--ink); }
+  .gr-row { padding: 11px 13px; font-size: 13px; line-height: 1.5; border-top: 1px solid var(--ghost); color: var(--bone-dim); }
+  .gr-col:nth-child(1) .gr-row { color: #BFE9F8; }
+  .gr-col:nth-child(3) .gr-row { color: #E8B0A8; }
+
+  /* ── CHECKLIST ── */
+  .cl { list-style: none; margin: 30px 0; max-width: 680px; }
+  .cl li {
+    display: flex; align-items: flex-start; gap: 14px;
+    padding: 15px 16px; margin-bottom: 8px;
+    border: 1px solid var(--ghost); background: var(--ink2);
+    cursor: pointer; font-size: 15px;
+    color: var(--bone-dim); transition: border-color 0.2s, color 0.2s; user-select: none;
+  }
+  .cl li:hover { border-color: var(--bone-dark); }
+  .cl li.chk { border-color: var(--sig); color: var(--bone); }
+  .cb {
+    width: 20px; height: 20px; flex-shrink: 0; border: 2px solid var(--ghost);
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.2s, border-color 0.2s; margin-top: 3px;
+  }
+  .cl li.chk .cb { background: var(--sig); border-color: var(--sig); }
+  .ct { font-size: 12px; opacity: 0; color: var(--ink); font-weight: 700; }
+  .cl li.chk .ct { opacity: 1; }
+  .cl li strong { color: inherit; font-weight: 700; text-transform: uppercase; font-size: 13.5px; letter-spacing: 0.04em; }
+  .cl-prog { font-family: var(--mono); font-size: 12px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--bone-dark); margin-bottom: 20px; }
+  .cl-prog #cc { color: var(--sig); }
+  .cl-prog.full, .cl-prog.full #cc { color: var(--sig); }
+
+  #fab {
+    position: fixed; right: 20px; bottom: 20px; z-index: 250;
+    width: 46px; height: 46px; background: var(--ink2); color: var(--sig);
+    border: 1px solid var(--ghost); font-size: 17px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; transform: translateY(14px); pointer-events: none;
+    transition: opacity 0.4s, transform 0.4s, background 0.2s;
+  }
+  #fab.show { opacity: 1; transform: none; pointer-events: auto; }
+  #fab:hover { background: var(--sig); color: var(--ink); }
+  #fab-toast {
+    position: fixed; right: 20px; bottom: 76px; z-index: 250;
+    font-family: var(--mono); font-size: 11px; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    background: var(--sig); color: var(--ink); padding: 7px 13px;
+    opacity: 0; transform: translateY(6px); pointer-events: none;
+    transition: opacity 0.3s, transform 0.3s;
+  }
+  #fab-toast.show { opacity: 1; transform: none; }
+
+  .closer { margin: 80px 0 0; border-left: 5px solid var(--sig); padding-left: 26px; max-width: 720px; }
+  .closer p { font-weight: 700; font-size: clamp(21px, 3.4vw, 30px); line-height: 1.4; color: var(--bone); margin-bottom: 14px; max-width: none; }
+  .closer cite { font-family: var(--mono); font-size: 12px; color: var(--bone-dim); font-style: normal; letter-spacing: 0.07em; }
+
+  footer { margin-top: 90px; border-top: 1px solid var(--ghost); }
+  .next { padding: 52px 5vw; border-bottom: 1px solid var(--ghost); max-width: 880px; margin: 0 auto; }
+  .next-k { font-family: var(--mono); font-size: 11px; font-weight: 700; letter-spacing: 0.25em; color: var(--bone-dim); text-transform: uppercase; margin-bottom: 14px; }
+  .next-t { font-family: var(--disp); font-size: clamp(26px, 5vw, 44px); text-transform: uppercase; line-height: 1.05; margin-bottom: 12px; }
+  .next-t b { color: var(--sig); font-weight: 400; }
+  .next-d { color: var(--bone-dim); font-size: 15px; max-width: 460px; }
+  .next a { color: inherit; text-decoration: none; }
+  .foot {
+    padding: 24px 5vw; display: flex; flex-wrap: wrap;
+    justify-content: space-between; gap: 12px;
+    font-family: var(--mono); font-size: 11px; font-weight: 500;
+    letter-spacing: 0.14em; text-transform: uppercase; color: var(--bone-dim);
+  }
+  .foot a { color: var(--bone-dim); text-decoration: none; transition: color 0.2s; }
+  .foot a:hover { color: var(--sig); }
+  .foot b { color: var(--sig); font-weight: 500; }
+
+  .rv { opacity: 0; transform: translateY(22px); transition: opacity 0.55s ease, transform 0.55s cubic-bezier(0.2,0.6,0.3,1); }
+  .rv.in { opacity: 1; transform: none; }
+
+  @media (max-width: 640px) {
+    .rail { display: none; }
+    .gr-grid { grid-template-columns: 1fr; }
+    .anat-row { grid-template-columns: 1fr; }
+    .anat-k { border-right: none; border-bottom: 1px solid var(--ghost); }
+    .secnum { right: -4vw; opacity: 0.7; }
+    .file { font-size: 12px; }
+    #fab { right: 14px; bottom: 14px; }
+    #fab-toast { right: 14px; bottom: 70px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    body::after, .ticker-track { animation: none; }
+    h1 .row, .why, .deckline, .meta { animation: none; opacity: 1; }
+    h1 .row { transform: none; } .deckline, .meta { transform: none; }
+    h1:hover .down { animation: none; }
+    .rv { opacity: 1; transform: none; transition: none; }
+    .blk { opacity: 1; } .bar { transition: none; }
+  }
+</style>
+</head>
+<body>
+<div id="prog"></div>
+
+<div class="ticker" aria-hidden="true">
+  <div class="ticker-track">
+    <span>session 01 <b>//</b> re-explain everything</span><span>·</span>
+    <span>session 02 <b>//</b> re-explain everything</span><span>·</span>
+    <span>session 03 <b>//</b> re-explain everything</span><span>·</span>
+    <span>session 04 <b>//</b> re-explain everything</span><span>·</span>
+    <span>session 01 <b>//</b> re-explain everything</span><span>·</span>
+    <span>session 02 <b>//</b> re-explain everything</span><span>·</span>
+    <span>session 03 <b>//</b> re-explain everything</span><span>·</span>
+    <span>session 04 <b>//</b> re-explain everything</span><span>·</span>
+  </div>
+</div>
+
+<div class="bar" id="bar">
+  <span class="brand">Devfuzion <b>//</b> AI Field Notes</span>
+  <a href="../">Issue 002 · all issues</a>
+  <a href="../001/">← Issue 001</a>
+</div>
+
+<header class="hero">
+  <div class="rail">Devfuzion <b>//</b> AI Field Notes <b>//</b> Issue 002</div>
+  <h1>
+    <span class="row">Stop starting</span>
+    <span class="row hollow">from</span>
+    <span class="row"><span class="down">zero.</span></span>
+  </h1>
+  <div class="why">Build the workshop.</div>
+  <div class="deckline">
+    <div class="deckrule"></div>
+    <p class="deck">You've got the spec and the verifier down. But you rebuild both from scratch every session. <b>Layer 3 is how you stop doing that.</b></p>
+  </div>
+  <p class="meta">Field notes by <b>Aubrey Ballard</b> — Sr. Systems Analyst · <span id="rt">~9 min</span> · interactive</p>
+</header>
+
+<div class="wrap">
+
+  <section style="padding-top:64px;">
+    <p class="rv">Issue 001 was about getting one piece of work right — the spec, the verifier, the back-and-forth that turns a vague ask into something useful. Issue 000 was about what stays out of the chat entirely. Both of those are session-level skills. You apply them, you get a good result, you close the tab.</p>
+
+    <p class="rv">And then tomorrow you open a new chat and do the whole setup again. Explain the repo. Explain the conventions. Explain which folders are off-limits and how this particular client's environment is wired. Paste in the format example. Re-establish the rules. <em>Then</em> you start working.</p>
+
+    <p class="rv">I did this for months without noticing it was a problem. Every session started from zero because that's just how chat works — blank box, blinking cursor, no memory of yesterday. It felt normal. It was also the single biggest tax on my AI usage, and I was paying it every single time.</p>
+
+    <div class="pq rv">
+      <p>"The work you do once and reuse is leverage. The work you redo every session is just overhead wearing a productivity costume."</p>
+      <cite>— A thing I wish I'd figured out six months earlier</cite>
+    </div>
+
+    <p class="rv">Layer 3 — the environment — is the fix. It's the least flashy of the three layers and by far the highest return, because it's the only one that <em>compounds</em>. A good spec helps you today. A good environment helps you every day after you build it, and it keeps getting better the more you use it. This issue is how to build one.</p>
+
+    <p class="rv">It's aimed at whoever owns AI tooling at your shop — the person who'll actually set this up and maintain it — but any tech should read it, because the payoff only lands if the people using the environment understand what's in it and why.</p>
+  </section>
+
+  <!-- 01 — CLAUDE.md -->
+  <section class="sec">
+    <div class="secnum" aria-hidden="true">01</div>
+    <h2 class="plate rv">The file that ends the re-explaining.</h2>
+    <p class="fn rv">// claude_md_as_standing_brief()</p>
+
+    <p class="rv">If you use Claude Code on a project, a file named <code>CLAUDE.md</code> at the repo root gets read automatically on every prompt in that session. You don't paste it. You don't reference it. It's just <em>there</em>, every time, as standing context. That's the whole trick — and it's the centerpiece of the entire environment.</p>
+
+    <p class="rv">Everything you currently re-explain at the start of a session goes in this file once. How the repo is laid out. The architecture quirks Claude can't infer from the code. The naming conventions. What's protected. What "good output" looks like for this project. Write it down a single time, and every future session starts already knowing all of it.</p>
+
+    <p class="rv">Here's the structure I use — the same template my team starts every project with. Watch it build:</p>
+
+    <div class="build rv">
+      <div class="build-tag">Exhibit 2 — Build The Brief</div>
+      <div class="build-lead">CLAUDE.md — assembled one block at a time</div>
+      <div class="file">
+        <div class="file-bar"><span class="fn-name">CLAUDE.md</span><span id="blk-count">0 / 7 sections</span></div>
+        <div class="file-body" id="file-body">
+          <div class="blk"><span class="h">Project Overview</span><span class="c">Name, goal (the outcome — not the task), owner, stack, repo. The one-paragraph "what is this."</span></div>
+          <div class="blk"><span class="h">Repo Structure</span><span class="c">/src, /config, /docs, /scripts — one line each. So Claude never guesses where something lives.</span></div>
+          <div class="blk"><span class="h">Architecture Notes</span><span class="c">The stuff it can't infer from code: auth patterns, API quirks, data flow, why a thing is the way it is.</span></div>
+          <div class="blk"><span class="h">Skills &amp; How To Route Them</span><span class="c">Which skill file to use, and the trigger that should reach for it. (More on these below.)</span></div>
+          <div class="blk"><span class="h">Working Rules</span><span class="c">Spec before building. Flag assumptions. Agile checkpoints, not waterfall dumps. The method, baked in.</span></div>
+          <div class="blk"><span class="h">Guardrails</span><span class="c">Always do / Ask first / Never do. The three buckets, written down before any agentic work starts.</span></div>
+          <div class="blk"><span class="h">Output Standards</span><span class="c">What "good" looks like for what this project produces. Concrete criteria, not "make it professional."</span></div>
+        </div>
+      </div>
+      <div class="build-cap">Seven sections. Written once. Read on every prompt, forever. <b>Scroll to assemble it.</b></div>
+    </div>
+
+    <p class="rv">Notice what's in there: the working rules and guardrails <em>are</em> the method from Issue 001, turned into standing infrastructure. You're not re-typing "interview me first, work in checkpoints, flag your assumptions" into every chat. You wrote it once, and now it's the default behavior for the whole project.</p>
+
+    <div class="callout rv">
+      <div class="callout-tag">Keep It Honest</div>
+      <p>A <code>CLAUDE.md</code> goes stale the moment your project moves and the file doesn't. When the architecture changes, the file changes in the same commit — treat it like code, not documentation. A confidently wrong standing brief is worse than none, because now Claude is certain about something that's no longer true.</p>
+    </div>
+
+    <p class="rv">And to be clear about Issue 000: a <code>CLAUDE.md</code> is structure and conventions — it is <em>not</em> a place to park live credentials or real client identifiers. The whole point is that it's reusable and shareable across your team. Anything you wouldn't want in a shared repo doesn't belong in the file.</p>
+  </section>
+
+  <!-- 02 — Knowledge base -->
+  <section class="sec">
+    <div class="secnum" aria-hidden="true">02</div>
+    <h2 class="plate rv">Give it a library to pull from.</h2>
+    <p class="fn rv">// a_knowledge_base_of_your_own()</p>
+
+    <p class="rv">The <code>CLAUDE.md</code> tells Claude how the project works. The knowledge base gives it the reference material to work <em>from</em>. It's just a folder of your own files — past specs, reference outputs, the examples that define your house style — that Claude can pull into context when it needs them.</p>
+
+    <p class="rv">This is the part people get backwards. They dump raw data in and hope the model figures out the pattern. What actually works is the opposite: a small, curated set of <em>examples of good</em>. One report you were proud of. One runbook in your exact format. The structure you want incident write-ups to follow. Claude is far better at "match this" than at "infer what I'd probably want."</p>
+
+    <div class="anat rv">
+      <div class="anat-row"><div class="anat-k">/docs/specs/</div><div class="anat-v">Past project specs and the decisions behind them. So a new build inherits old reasoning instead of relitigating it.</div></div>
+      <div class="anat-row"><div class="anat-k">/docs/examples/</div><div class="anat-v">Reference outputs — the report, the email, the runbook that nailed the format. "Match this," not "guess."</div></div>
+      <div class="anat-row"><div class="anat-k">/docs/standards/</div><div class="anat-v">Tone, structure, and format rules. The style guide Claude reads instead of inventing one.</div></div>
+    </div>
+
+    <p class="rv">Tie it back to Issue 001's verifier: a knowledge base is how you give Claude something concrete to check itself against. "Match the format of the example in <code>/docs/examples/</code>" is a verifiable instruction. "Make it look professional" is a wish. Same principle as the data-sensitivity line from 001 — you're handing over <em>format and style guidance, not raw client data</em>.</p>
+
+    <div class="callout rv">
+      <div class="callout-tag">Curate, Don't Hoard</div>
+      <p>A knowledge base of fifty mediocre files is worse than five great ones. The model averages what you give it. Feed it your best work and it pulls toward your best work; feed it everything and it pulls toward the mean. Prune it like you'd prune a runbook library — ruthlessly.</p>
+    </div>
+  </section>
+
+  <!-- 03 — Skills -->
+  <section class="sec">
+    <div class="secnum" aria-hidden="true">03</div>
+    <h2 class="plate rv">Turn repeated work into a handbook.</h2>
+    <p class="fn rv">// skills_as_reusable_process()</p>
+
+    <p class="rv">Anything you find yourself re-explaining the same way more than twice should become a skill. Not an SOP in the traditional sense — more like a standing brief for one specific type of work: how you do client email summaries, your runbook format, the structure you use for incident reports. You write the instructions once, and from then on you invoke the skill instead of rebuilding the instructions.</p>
+
+    <p class="rv">The <code>CLAUDE.md</code> points to them and says when to reach for each one — that's the "Skills &amp; How To Route Them" block from the centerpiece. The skill file itself holds the actual how-to. The kickoff prompt my team uses to start any project — goal interview, spec, verification contract, guardrails, agile rules — is itself a kind of skill: a reusable process we stopped rewriting and started invoking.</p>
+
+    <h3 class="rv">The part nobody tells you</h3>
+
+    <p class="rv">The value isn't writing the skill once. It's that <em>using</em> it surfaces the gaps. Every time a skill produces something slightly off, that's a signal — something in the instructions wasn't precise enough. You fix that line. Run it enough times against real work and the skill gets sharp. The first version is never the final version, and that's not a flaw; it's the mechanism. A skill you've run fifty times encodes fifty corrections you'll never have to make again.</p>
+
+    <p class="rv">That's the compounding in action. The environment isn't something you build once and freeze. It's something that gets measurably better every week you use it, because every rough edge you hit becomes a line you tighten.</p>
+
+    <div class="callout rv">
+      <div class="callout-tag">The Compound Effect</div>
+      <p>Week one, this barely beats just prompting well. Six months in, every new project starts with richer context, better default behavior, and a shorter path from "I need this" to "it's done and correct." The gap keeps shrinking. That shrinking gap is the entire return on Layer 3 — and it's why it's worth the unglamorous setup work.</p>
+    </div>
+  </section>
+
+  <!-- 04 — Guardrails recap as enforcement -->
+  <section class="sec">
+    <div class="secnum" aria-hidden="true">04</div>
+    <h2 class="plate rv">Rules vs. requests.</h2>
+    <p class="fn rv">// enforce_at_the_environment_level()</p>
+
+    <p class="rv">One distinction worth its own section, because it's where the environment earns its keep on anything high-stakes. Telling Claude "don't touch the auth flow" in a prompt is a <strong>request</strong> — it can still touch it if the reasoning feels compelling enough in the moment. Putting that rule in your <code>CLAUDE.md</code> makes it standing context. Wiring a tool-level hook that physically blocks writes to those files makes it a <strong>rule</strong>. Three different strengths, and you should know which one you're relying on.</p>
+
+    <p class="rv">The three buckets every project gets sorted into before any agentic work starts:</p>
+
+    <div class="gr-grid rv">
+      <div class="gr-col">
+        <div class="gr-hd g">Always Do</div>
+        <div class="gr-row">Follow existing naming conventions</div>
+        <div class="gr-row">Comment new or modified logic</div>
+        <div class="gr-row">Flag assumptions — never fill silently</div>
+        <div class="gr-row">Checkpoint before continuing</div>
+      </div>
+      <div class="gr-col">
+        <div class="gr-hd y">Ask First</div>
+        <div class="gr-row">Delete or rename existing files</div>
+        <div class="gr-row">Touch anything in /config</div>
+        <div class="gr-row">Schema or architecture changes</div>
+        <div class="gr-row">Anything with non-trivial rollback cost</div>
+      </div>
+      <div class="gr-col">
+        <div class="gr-hd r">Never Do</div>
+        <div class="gr-row">Touch protected folders</div>
+        <div class="gr-row">Deploy to production unsupervised</div>
+        <div class="gr-row">Modify auth or billing alone</div>
+        <div class="gr-row">Invent context — ask instead</div>
+      </div>
+    </div>
+
+    <p class="rv">The rule of thumb: <strong>if something genuinely cannot be allowed to go wrong, don't leave it in the prompt where it's a polite request.</strong> Push it down to the environment — the file, or better, the hook — where it's enforced whether or not the model feels like cooperating that day.</p>
+  </section>
+
+  <!-- KIT -->
+  <section class="sec" id="kit" style="padding-top:72px;">
+    <div class="kit-tag rv">Field Kit — Start From These</div>
+    <h2 class="plate rv" style="font-size:clamp(24px,4.6vw,44px);">The templates we actually use</h2>
+    <p class="fn rv" style="margin-bottom:24px;">// dont_build_the_workshop_from_scratch_either()</p>
+    <p class="rv">There's a small irony in writing a whole issue about not starting from zero and then making you start your environment from zero. So don't. These are the three files my team starts every project with — sanitized, bracketed, ready to fill in. Lift them.</p>
+
+    <div class="anat rv">
+      <div class="anat-row"><div class="anat-k">Kickoff Prompt</div><div class="anat-v">The five-step opener: goal interview → spec → verification contract → guardrails → agile rules. Paste it at the start of any new project session.</div></div>
+      <div class="anat-row"><div class="anat-k">CLAUDE.md Template</div><div class="anat-v">The seven-section standing brief from Exhibit 2, with every block bracketed and ready to fill. Drop it at your repo root.</div></div>
+      <div class="anat-row"><div class="anat-k">Quick Reference</div><div class="anat-v">The whole three-layer method on one page — for pinning above your desk or onboarding a new tech in five minutes.</div></div>
+    </div>
+
+    <p class="rv">Your shop's internal AI policy still governs what's allowed to go <em>into</em> these — see Issue 000 if you skipped it. The templates are structure; the judgment about what fills them is yours.</p>
+
+    <div class="callout rv">
+      <div class="callout-tag">Get The Files</div>
+      <p>The three templates ship alongside this issue — grab them, strip the brackets, and you've got a working environment before lunch. Then start tightening, because remember: the first version is never the final version.</p>
+      <p style="margin-top:14px;display:flex;flex-wrap:wrap;gap:10px;">
+        <a class="dl" href="./kit/01_PROJECT_KICKOFF_PROMPT.md" download>↓ Kickoff Prompt</a>
+        <a class="dl" href="./kit/02_CLAUDE_MD_TEMPLATE.md" download>↓ CLAUDE.md Template</a>
+        <a class="dl" href="./kit/03_QUICK_REFERENCE.md" download>↓ Quick Reference</a>
+      </p>
+    </div>
+
+    <div class="cl-prog rv" id="cl-prog"><span id="cc">0</span><span id="cl-rest"> / 6 done</span></div>
+
+    <ul class="cl rv">
+      <li onclick="chk(this)" tabindex="0" role="checkbox" aria-checked="false">
+        <div class="cb"><span class="ct">✓</span></div>
+        <div><strong>CLAUDE.md at the root.</strong> Seven sections filled in. Every session now starts already knowing the project.</div>
+      </li>
+      <li onclick="chk(this)" tabindex="0" role="checkbox" aria-checked="false">
+        <div class="cb"><span class="ct">✓</span></div>
+        <div><strong>Method baked in.</strong> Working rules and guardrails live in the file — not re-typed into every chat.</div>
+      </li>
+      <li onclick="chk(this)" tabindex="0" role="checkbox" aria-checked="false">
+        <div class="cb"><span class="ct">✓</span></div>
+        <div><strong>Knowledge base seeded.</strong> A few examples of good — your best report, your cleanest runbook — not a dump.</div>
+      </li>
+      <li onclick="chk(this)" tabindex="0" role="checkbox" aria-checked="false">
+        <div class="cb"><span class="ct">✓</span></div>
+        <div><strong>First skill written.</strong> Whatever you've re-explained three times this month is now a file you invoke.</div>
+      </li>
+      <li onclick="chk(this)" tabindex="0" role="checkbox" aria-checked="false">
+        <div class="cb"><span class="ct">✓</span></div>
+        <div><strong>Guardrails sorted.</strong> Always / ask first / never — and you know which ones are requests vs. enforced rules.</div>
+      </li>
+      <li onclick="chk(this)" tabindex="0" role="checkbox" aria-checked="false">
+        <div class="cb"><span class="ct">✓</span></div>
+        <div><strong>Kept honest.</strong> The file updates in the same commit as the thing it describes. Stale context is wrong context.</div>
+      </li>
+    </ul>
+
+    <div class="closer rv">
+      <p>"Anyone can have a good session with AI. The people getting real leverage aren't prompting better — they built a place for the work to live, and it's been quietly getting smarter ever since. Build the workshop. The work takes care of itself."</p>
+      <cite>— Aubrey Ballard · Devfuzion</cite>
+    </div>
+  </section>
+
+</div><!-- /wrap -->
+
+<footer>
+  <div class="next">
+    <div class="next-k">Start Here If You Haven't</div>
+    <a href="../000/"><div class="next-t">What goes in never comes <b>back.</b></div></a>
+    <p class="next-d">Before you put any of this into practice — the one issue every tech reads first. What stays out of the chat, full stop.</p>
+  </div>
+  <div class="foot">
+    <span>Devfuzion AI Field Notes</span>
+    <span>signal <b>&gt;</b> noise</span>
+    <span><a href="../">all issues</a> · <a href="https://devfuzion.com">devfuzion.com</a></span>
+  </div>
+</footer>
+
+<button id="fab" aria-label="Copy link to this article" onclick="copyLink()">⎘</button>
+<div id="fab-toast">link copied</div>
+
+<script>
+  const RM = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const rtEl = document.getElementById('rt');
+  const barEl = document.getElementById('bar');
+  const fabEl = document.getElementById('fab');
+  window.addEventListener('scroll', () => {
+    const max = document.body.scrollHeight - window.innerHeight;
+    const p = max > 0 ? window.scrollY / max : 0;
+    document.getElementById('prog').style.width = (p * 100) + '%';
+    if (p < 0.02) rtEl.textContent = '~9 min';
+    else if (p > 0.96) rtEl.textContent = '✓ read';
+    else rtEl.textContent = '~' + Math.max(1, Math.ceil(9 * (1 - p))) + ' min left';
+    barEl.classList.toggle('show', window.scrollY > 560);
+    fabEl.classList.toggle('show', window.scrollY > 900);
+  }, { passive: true });
+
+  function copyLink() {
+    navigator.clipboard.writeText(location.href).then(() => {
+      const t = document.getElementById('fab-toast');
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 1800);
+    });
+  }
+
+  const obs = new IntersectionObserver(entries => {
+    entries.filter(e => e.isIntersecting).forEach((e, i) => {
+      const el = e.target;
+      el.style.transitionDelay = Math.min(i * 75, 300) + 'ms';
+      el.classList.add('in');
+      obs.unobserve(el);
+      setTimeout(() => { el.style.transitionDelay = ''; }, 1400);
+    });
+  }, { threshold: 0.08, rootMargin: '0px 0px -30px 0px' });
+  document.querySelectorAll('.rv').forEach(el => obs.observe(el));
+
+  /* Exhibit 2: blocks light up one at a time as the file scrolls through view */
+  (function () {
+    const blks = Array.from(document.querySelectorAll('#file-body .blk'));
+    const counter = document.getElementById('blk-count');
+    if (RM) { blks.forEach(b => b.classList.add('lit')); counter.textContent = blks.length + ' / ' + blks.length + ' sections'; return; }
+    const bObs = new IntersectionObserver(es => {
+      es.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add('lit');
+          bObs.unobserve(e.target);
+          counter.textContent = document.querySelectorAll('#file-body .blk.lit').length + ' / ' + blks.length + ' sections';
+        }
+      });
+    }, { threshold: 0.6, rootMargin: '0px 0px -10% 0px' });
+    blks.forEach(b => bObs.observe(b));
+  })();
+
+  /* Checklist */
+  function chk(li) {
+    li.classList.toggle('chk');
+    li.setAttribute('aria-checked', li.classList.contains('chk') ? 'true' : 'false');
+    const n = document.querySelectorAll('.cl li.chk').length;
+    document.getElementById('cc').textContent = n;
+    const prog = document.getElementById('cl-prog');
+    prog.classList.toggle('full', n === 6);
+    document.getElementById('cl-rest').textContent = n === 6 ? ' / 6 — workshop online' : ' / 6 done';
+  }
+  document.querySelectorAll('.cl li').forEach(el => {
+    el.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); el.click(); }
+    });
+  });
+</script>
+</body>
+</html>
